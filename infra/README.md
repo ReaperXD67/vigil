@@ -2,11 +2,11 @@
 
 `ec2/` provisions the public demonstration host: a VPC, one subnet, internet gateway, web-only firewall, SSM instance role, encrypted root volume, EC2 and a stable Elastic IP. The host runs K3s with Traefik, Metrics Server and local storage. Terraform has no database password or Kubernetes credentials. Deploy the application separately through Helm.
 
-`eks/` is an optional, separately billed implementation with two public subnets, a managed EKS control plane, a real managed node group, EBS CSI with Pod Identity and Metrics Server. It deliberately uses no NAT Gateway. It is locked unless `enable_paid_eks=true`; it is **not** the default public deployment.
+`eks/` is a source reference with two public subnets, a managed EKS control plane, a real managed node group, EBS CSI with Pod Identity and Metrics Server. It deliberately uses no NAT Gateway. It is locally validated but **not deployed or authorized under the current Free-plan policy**. Its `enable_paid_eks` variable defaults to false and cannot override the deployment helper's account-plan check.
 
 See [deployment and costs](../docs/DEPLOYMENT.md) before provisioning and [operations](../docs/OPERATIONS.md) before deleting a host. Terraform state is ignored by Git. Keep state securely; it is required to manage and remove resources.
 
-Each profile includes a reviewable configuration template: [EC2 variables](ec2/terraform.tfvars.example) and [EKS variables](eks/terraform.tfvars.example). Copy the applicable file to `terraform.tfvars` to customize it locally. Both deployment gates remain `false` in the examples; the EC2 credit acknowledgement and separate EKS cost opt-in must be deliberate.
+Each profile includes a reviewable configuration template: [EC2 variables](ec2/terraform.tfvars.example) and [EKS variables](eks/terraform.tfvars.example). Copy the EC2 file to `terraform.tfvars` to customize the public host locally. Both deployment gates remain `false` in the examples; leave EKS disabled. See the durable [project instructions](../AGENTS.md).
 
 The deployment helper checks the actual AWS account plan before applying changes: only `FREE`/`ACTIVE` with positive credits passes. Paid accounts fail even with unused credits. Delete-only cleanup remains available. No workflow upgrades the account; the public demo must remain on its time-limited Free plan.
 

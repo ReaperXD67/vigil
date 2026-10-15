@@ -78,6 +78,8 @@ kubectl delete namespace monitoring --wait=true --timeout=120s
 
 These commands remove the dedicated monitoring namespace, including its ephemeral history and dashboard/admin configuration. The source dashboard remains in Git and `deploy-monitoring.sh` recreates the stack. Close any SSM or kubectl forwarding sessions used for review. Wait until the app is healthy and HPA demand has returned to its normal two replicas, then review and apply the Terraform change back to `t3.small`. Metrics Server and the app's internal metrics remain available without the Prometheus/Grafana workload.
 
+Helm deliberately retains Prometheus Operator CRDs after uninstall. On this dedicated demo cluster, the ten `monitoring.coreos.com` CRDs were removed after verifying their creation times/operator version matched the temporary installation and every resource type had zero instances across all namespaces. Do not remove shared CRDs merely because the monitoring namespace is gone: other releases may still depend on them. The monitoring installer can restore these definitions when explicitly enabled again.
+
 ## Isolated failure exercises
 
 ```sh

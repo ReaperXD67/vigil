@@ -2,6 +2,8 @@
 
 **Date:** 15 October 2026. This record separates exact CI revisions, local browser checks, and observed AWS operations. The [main README](../README.md) carries the current public URL and deployed revision.
 
+**Live release:** revision `5af1c163474b4b14266aa639581797778bf7b106` is deployed as Helm revision 7 with dependency migration `c5f6d1a2b390`. Its [CI run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985), public API checks, production browser workflows, and post-downsize stability checks passed. The final host is **t3.small (2 GiB)**; temporary recovery/monitoring capacity and tunnels have been removed.
+
 The source repository is public and exceeds the assignment's ten-commit requirement. Its [captured history](assets/github-history.png) shows 11 meaningful commits through `9370cf8`; the [current history](https://github.com/ReaperXD67/vigil/commits/main/) includes subsequent security, deployment, and dependency-map work. EKS has not been provisioned: the public product uses K3s on a single EC2 host within an active AWS Free account plan.
 
 ## Automated application and runtime checks
@@ -18,29 +20,29 @@ The source repository is public and exceeds the assignment's ten-commit requirem
 | Frontend-to-API integration | Real Nginx proxy, demo session, service listing, task CRUD, export, metrics and logout passed |
 | Persistence | Backend container restarted; the existing session, updated task, and dependency survived and remained accessible. The persisted edge appeared in JSON export and disappeared when its service was deleted |
 
-The final visual/dependency revision is `49b1aa3fc58f5327b3adc79d6760244c95435052`, [run 38739998103](https://github.com/ReaperXD67/vigil/actions/runs/38739998103). All four jobs passed, including complete-stack persistence and both strict container scans. SQLite upgrade → schema-drift check → downgrade to base → upgrade passed locally for the dependency migration. Existing service data survived the local upgrade, and `/ready` now checks the dependency table.
+The verified application/recovery revision is `5af1c163474b4b14266aa639581797778bf7b106`, [run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985). All four jobs passed, including complete-stack persistence and both strict container scans. SQLite upgrade → schema-drift check → downgrade to base → upgrade passed locally for the dependency migration. Existing service data survived the local upgrade, and `/ready` now checks the dependency table.
 
 The reusable runtime check is [compose-smoke.py](../.github/scripts/compose-smoke.py). CI starts the exact images that are subsequently scanned and published. PostgreSQL and its volume are disposed of after the test. Local Docker Desktop encountered a host startup failure, so this record does not claim that the local desktop Compose runtime passed.
 
 ## Container security and publishing
 
-The final application [run 38739998103](https://github.com/ReaperXD67/vigil/actions/runs/38739998103) passed all four jobs and published both images. Trivy **v0.76.0** scanned operating-system packages and Python runtime dependencies. Both images had **zero HIGH or CRITICAL findings** with the scan database available during that run. The gate includes unfixed vulnerabilities, uses exit code 1 on findings, and contains no vulnerability exclusions. Findings at lower severities are outside this gate; this result is not a guarantee that the images contain no vulnerabilities.
+The application/recovery [run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985) passed all four jobs and published both images. Trivy **v0.76.0** scanned operating-system packages and Python runtime dependencies. Both images had **zero HIGH or CRITICAL findings** with the scan database available during that run. The gate includes unfixed vulnerabilities, uses exit code 1 on findings, and contains no vulnerability exclusions. Findings at lower severities are outside this gate; this result is not a guarantee that the images contain no vulnerabilities.
 
 An earlier run correctly blocked publication after finding 44 HIGH findings in the Debian runtime. The backend was changed to the official Python 3.12.15 Alpine runtime, updated its OS packages, retained CA certificates, and installed the pinned Python dependencies from compatible wheels. The new backend and frontend scans passed without weakening the policy. The actual reports are downloadable as the `container-security-reports` artifact in the linked successful run.
 
 Published images:
 
 ```text
-ghcr.io/reaperxd67/vigil-backend:49b1aa3fc58f5327b3adc79d6760244c95435052
-ghcr.io/reaperxd67/vigil-frontend:49b1aa3fc58f5327b3adc79d6760244c95435052
+ghcr.io/reaperxd67/vigil-backend:5af1c163474b4b14266aa639581797778bf7b106
+ghcr.io/reaperxd67/vigil-frontend:5af1c163474b4b14266aa639581797778bf7b106
 ```
 
 Both tags were checked independently through anonymous registry authentication and manifest requests, which returned HTTP 200. Their public availability does not depend on a developer's local GitHub credentials. Publication occurred only after tests, runtime checks, and both scans passed.
 
-| Image at `49b1aa3fc58f5327b3adc79d6760244c95435052` | Verified manifest digest |
+| Image at `5af1c163474b4b14266aa639581797778bf7b106` | Verified manifest digest |
 | --- | --- |
-| `ghcr.io/reaperxd67/vigil-backend` | `sha256:91ed69cee5733d72179df8741bc040baff391e0772d0640d928d3ceaadfa164e` |
-| `ghcr.io/reaperxd67/vigil-frontend` | `sha256:cdb13f08d4bf346751b7ad19c56ae074b805a3f167d971af58f9485d619fc6f8` |
+| `ghcr.io/reaperxd67/vigil-backend` | `sha256:5cbe7d426ab16c0afff1df821249bef9abff8e7d00486a469262a23745a853d3` |
+| `ghcr.io/reaperxd67/vigil-frontend` | `sha256:23b80189de104f1ce097c26e9ab080c9cbd5559a8c93a86a12e79cb25f8ff3bb` |
 
 ## Browser verification
 
@@ -54,6 +56,7 @@ The connected local frontend/backend was exercised through the browser during th
 - Checked a 320 px viewport: document width remained 320 px with no horizontal overflow. Reduced-motion mode produced no JavaScript errors; Motion's expected reduced-motion warning was observed.
 - Opened the dependency view at mobile width, added Authentication → Dashboard through the dialog, and reloaded to confirm four persisted edges. The selected service correctly changed from one direct/two indirect dependents to two direct/one indirect dependent. Confirmed removal deleted the added edge after reload. Independent live requests through the Vite proxy verified the new demo chain, cycle rejection, JSON export, private/public separation, and cascade deletion.
 - Verified the nested `/app/topology?demo=1` entry opens the requested route after demo creation. The interactive incident lab's shared URL restored its selected scenario and time; play advanced, pause stopped, the end state resolved, and its Markdown download contained all five phases. These lab events are explicit simulations, not real incidents. The 390 px mobile document stayed 390 px wide.
+- Verified the recovery revision locally by blocking an actual lazy-loaded route chunk and separately triggering a render exception. The route error boundary showed recovery controls instead of leaving a blank page. The production frontend build passed after the change.
 
 The final local visual build passed with **24 frontend tests**: seven API-client/session/error-handling cases, six dependency-graph cases, and eleven particle geometry/projection cases. API-client tests verify cookie preservation, authentication failure status, readable validation errors, safe HTML gateway errors, and correct create/edit/delete requests. Geometry tests cover all shapes, mobile/desktop aspect ratios, extreme rotations, morph overshoot, and clearance around controls.
 
@@ -89,7 +92,24 @@ The screenshots below document the local interface, not a publicly hosted deploy
 
 ## AWS runtime evidence
 
-The public baseline at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-58.sslip.io) runs revision `29a6eca958bb42e20daad70d1bd90256630b8449` on K3s `v1.37.1+k3s1`, deployed with Helm `3.22.0` and cert-manager `1.21.2`. Observed results:
+The current public release at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-58.sslip.io) is **`5af1c163474b4b14266aa639581797778bf7b106`**, Helm revision **7**, database revision **`c5f6d1a2b390`**. Final release checks passed:
+
+- Public TLS liveness and database readiness both returned `200`.
+- Registered and signed in through the public API with Secure/HttpOnly session cookies. A real `https://example.com` check returned **HTTP 200 in 93.2 ms**; this is one measurement, not a latency guarantee.
+- Created, read, exported, and deleted a dependency; a reverse connection correctly returned cycle conflict `409`. Incident updates progressed identified → monitoring → resolved; the postmortem and linked recovery task reflected the recorded workflow.
+- Verified private-service status-page privacy, cross-workspace `404`, three clearly labeled demo dependencies, and demo external-probe rejection `403`. Verification tasks, incidents, dependencies, and services were removed and sessions logged out. The generated empty registered account remains because account deletion is not implemented.
+- Production browser checks exercised the actual WebGL tree, a shared queue scenario at time 45, and the nested **Map your own services** entry. A new demo opened `/app/topology` with three edges. Adding Authentication → Dashboard survived reload with four edges and the correct two-direct/one-indirect impact; removing it and reloading restored three edges. No new console errors appeared beyond the expected anonymous-authentication `401`.
+- After return to t3.small, the existing browser session survived the host restart. Its three original dependencies persisted, the deleted Authentication → Dashboard connection stayed deleted, and the reloaded landing page rendered the actual WebGL cube.
+
+The full API/initial browser checks ran on the temporary 4 GiB recovery host, followed by browser persistence checks and a bounded stability check on the final **t3.small (2 GiB)** host. Six Kubernetes `/readyz` and public HTTPS `/ready` checks all passed from **13:27:57 to 13:29:39 UTC on 15 October 2026**. Available memory ranged **543–569 MiB**; backend **2/2**, frontend **2/2**, and worker **1/1** stayed ready throughout. HPA held **2 replicas** at observed **4% CPU / 75% target**. Restart counts did not increase across these final diagnostics; previously recorded restarts followed controlled host reboots/startup.
+
+The final host retains the same public IP, requires IMDSv2, and uses T3 `standard` CPU credits. No 4 GiB capacity, optional Prometheus/Grafana release, unused monitoring CRDs, or SSM tunnel remains. No runtime garbage-collector tuning was needed. AWS Free-plan checks passed before the deployment/resizing operations; no account upgrade or EKS provisioning occurred.
+
+![Production Vigil dependency map at the public HTTPS host, showing clearly labeled demo services and potential downstream impact](assets/dependencies-live.png)
+
+This production capture comes from the verified public `5af1c16` release. The service graph is deliberately labeled sample data; it is evidence of the hosted workflow, not the application's own infrastructure topology.
+
+The earlier public baseline at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-58.sslip.io) ran revision `29a6eca958bb42e20daad70d1bd90256630b8449` on K3s `v1.37.1+k3s1`, deployed with Helm `3.22.0` and cert-manager `1.21.2`. Observed results at that checkpoint:
 
 - Valid public HTTPS response and database readiness. External authenticated smoke verified demo cookies with Secure/HttpOnly attributes, task CRUD, cross-workspace `404`, and logout. Public `/metrics` and `/api/metrics` returned `404`; metrics stay inside the cluster.
 - AWS reported account plan `FREE`, status `ACTIVE`, and positive remaining credit to the deployment guard. No account upgrade or paid EKS environment was used. Credit and time limits still bound availability.
@@ -98,7 +118,9 @@ The public baseline at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-5
 - Optional monitoring on a temporary 4 GiB host used `kube-prometheus-stack` **92.7.0** and Grafana **13.2.4**. Prometheus returned an application target `up=1`, a real request counter of **212**, and observed p95 request duration **0.0095 s**. The eight-panel **Vigil / operations** dashboard loaded. These are point-in-time measurements, not a performance guarantee.
 - Isolated broken-image and wrong-Service-selector exercises were diagnosed and recovered; their temporary namespace was removed.
 
-Temporary capacity cleanup is verified: the host returned to **t3.small (2 GiB)** with CPU credits set to `standard`, retained its public IP, and returned HTTPS readiness `200` with database `ok`. The monitoring release and namespace, temporary anonymous Grafana viewer, and SSM tunnel were removed; the local tunnel process exited. The AWS Free-plan guard passed again. Metrics Server and the application's internal metrics remain available. Final feature rollout remains pending at this checkpoint; continuous Prometheus/Grafana hosting is not claimed.
+The first temporary monitoring cleanup was verified: the host returned to **t3.small (2 GiB)** with CPU credits set to `standard`, retained its public IP, and returned HTTPS readiness `200` with database `ok`. The monitoring release and namespace, temporary anonymous Grafana viewer, and SSM tunnel were removed; the local tunnel process exited. The AWS Free-plan guard passed again. Continuous Prometheus/Grafana hosting is not claimed.
+
+The following feature upgrade exposed memory pressure under the previous surge policy and intermittent mixed-version frontend assets. The deployed recovery revision changes the frontend Deployment to `Recreate` and the API to zero-surge rolling updates, trading a bounded frontend interruption for consistent assets and lower peak memory on the single host. Its route error boundary offers recovery for interrupted chunk loads and render failures. Final rollout, public workflows, return to t3.small, and renewed stability checks all passed as recorded above.
 
 ### Captured live Grafana dashboard
 

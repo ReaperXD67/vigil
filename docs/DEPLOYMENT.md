@@ -84,25 +84,22 @@ bash scripts/deploy-monitoring.sh
 
 This installs pinned `kube-prometheus-stack` chart `92.7.0`, a ServiceMonitor, alert rules, and a Grafana dashboard with real API availability, request/error rates, p95 latency, checks, replica and memory queries. Prometheus retains six hours, up to 500 MB, on ephemeral storage. Grafana dashboard configuration is source-controlled; interactive dashboard edits and metrics history do not survive replacement. Grafana/Prometheus have no public ingress. Alert rules are evaluated, but no email/Slack receiver is configured. Private access and verification are in [operations](OPERATIONS.md).
 
-## Optional EKS: explicit cost opt-in
+## EKS reference: source only under the Free-plan policy
 
-`infra/eks` is a separate implementation, never applied by the budget deployment. Standard EKS control-plane pricing is $0.10/hour (about $73 per 730-hour month), **before** EC2 nodes, EBS, IPv4, logs and ingress load-balancer costs. Its two public subnets avoid NAT charges; that tradeoff should be reconsidered for a production security architecture. [EKS pricing](https://aws.amazon.com/eks/pricing/).
+`infra/eks` is a separate, locally validated reference implementation. It is not deployed, and this project's current policy prohibits deploying it or changing the AWS account plan. The deployment helper deliberately rejects every paid account, even if credits remain. The `enable_paid_eks` Terraform gate defaults to false; changing that variable does not override the helper or authorize an account upgrade.
 
-It creates a managed EKS cluster at Kubernetes `1.35`, a real 1–2-node managed group, encrypted node disks, SSM node access, audit logs, VPC CNI, CoreDNS, kube-proxy, Metrics Server, Pod Identity and EBS CSI. Add-on versions are resolved from AWS compatibility data for the selected Kubernetes version and recorded in Terraform state/output; review the plan on upgrades. The Kubernetes public API is restricted to the supplied operator `/32`; node traffic uses its private endpoint.
+Standard EKS control-plane pricing is $0.10/hour (about $73 per 730-hour month), before EC2 nodes, EBS, IPv4, logs and ingress load-balancer costs. The reference uses two public subnets to avoid NAT charges; this is a cost/security tradeoff, not a production-network recommendation. [EKS pricing](https://aws.amazon.com/eks/pricing/).
+
+The code describes a managed Kubernetes `1.35` cluster, a real 1–2-node managed group, encrypted node disks, SSM node access, audit logs, VPC CNI, CoreDNS, kube-proxy, Metrics Server, Pod Identity and EBS CSI. Add-on versions resolve from AWS compatibility data for the selected Kubernetes version. Public API access is restricted to an operator `/32`; node traffic uses the private endpoint. The supplied EBS StorageClass uses `Retain`, so retained volumes would require deliberate cleanup. A single PostgreSQL instance would not be automatically multi-AZ highly available.
+
+Safe local validation does not create cloud resources:
 
 ```sh
-python scripts/deploy-terraform.py --profile scaler-lab -- -chdir=infra/eks init
-python scripts/deploy-terraform.py --profile scaler-lab -- -chdir=infra/eks plan -var=enable_paid_eks=true -var=admin_cidr=YOUR_IPV4/32 -out=eks.tfplan
-# Apply only after a deliberate cost review; this is not part of the public demo.
-python scripts/deploy-terraform.py --profile scaler-lab -- -chdir=infra/eks apply eks.tfplan
-aws eks update-kubeconfig --region ap-south-1 --name vigil-eks
-kubectl apply -f infra/eks/storage-class.yaml
-helm repo add traefik https://traefik.github.io/charts
-helm repo update traefik
-helm upgrade --install traefik traefik/traefik --version 41.7.1 --namespace traefik --create-namespace --set deployment.replicas=1 --set service.spec.externalTrafficPolicy=Local --wait
-kubectl -n traefik get service traefik
+terraform -chdir=infra/eks init -backend=false
+terraform -chdir=infra/eks validate
+terraform -chdir=infra/eks fmt -check
 ```
 
-Point your domain at Traefik's load balancer, then run `STORAGE_CLASS=vigil-gp3 bash scripts/deploy.sh ...` with an EKS kubeconfig in `KUBECONFIG`. The EBS StorageClass uses `Retain`: after deleting a PVC, its volume needs deliberate cleanup. EBS is zonal; this single PostgreSQL instance is not automatically multi-AZ highly available. Ingress, TLS and monitoring use the same app charts. A source implementation is not a claim that these EKS resources were deployed or load-tested.
+Any future EKS deployment would require a separately authorized policy change, a reviewed hosting budget and a new deployment workflow. No runnable paid-account apply sequence is provided here. The current Free-plan guard must remain in place. This source implementation is not evidence of live EKS, EKS load testing, or multi-node availability.
 
 Release versions were checked against official upstream repositories on October 15, 2026: [K3s releases](https://github.com/k3s-io/k3s/releases), [Helm releases](https://github.com/helm/helm/releases), [cert-manager releases](https://github.com/cert-manager/cert-manager/releases), [monitoring chart](https://github.com/prometheus-community/helm-charts/tree/kube-prometheus-stack-92.7.0/charts/kube-prometheus-stack), [Traefik chart](https://github.com/traefik/traefik-helm-chart/releases).

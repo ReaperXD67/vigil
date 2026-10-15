@@ -69,13 +69,13 @@ The API exposes `/health`, DB-aware `/ready`, Prometheus `/metrics`, Swagger `/d
 
 GitHub Actions runs Python tests, frontend type-check/build/tests, PostgreSQL migration/rollback checks, nonroot container builds, and a real Compose persistence smoke test. Both images must pass Trivy with **zero HIGH or CRITICAL findings** before SHA-tagged images are published to GHCR. Early incremental commits may fail while implementation is in progress; use the current commit’s run as evidence.
 
-Verified in [CI run 38739998103](https://github.com/ReaperXD67/vigil/actions/runs/38739998103): **86 backend tests, 24 frontend tests, 10 spending-guard tests**, production builds, all three PostgreSQL migrations and rollback/reapplication, nonroot containers, and session/task/dependency persistence across a backend restart. Both images passed the strict security gate and are publicly pullable from GHCR at the complete SHA for revision `49b1aa3`. The frontend suite includes API-client behavior, dependency traversal, and particle geometry/projection tests. See the [exact image tags and delivery record](docs/VERIFICATION.md).
+Verified in [CI run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985): **86 backend tests, 24 frontend tests, 10 spending-guard tests**, production builds, all three PostgreSQL migrations and rollback/reapplication, nonroot containers, and session/task/dependency persistence across a backend restart. Both images passed the strict security gate and are publicly pullable from GHCR at the complete SHA for revision `5af1c16`. The frontend suite includes API-client behavior, dependency traversal, and particle geometry/projection tests. See the [exact image tags and delivery record](docs/VERIFICATION.md).
 
 Browser checks also verified account registration/login, a real HTTPS probe, incident resolution and postmortem download, task movement, command search, JSON export, and public-status privacy. Desktop and mobile interfaces were inspected. Terraform validation and Helm/schema checks passed locally. See the [verification record](docs/VERIFICATION.md) for evidence and limits.
 
 ![Vigil workspace with clearly labeled demonstration data](docs/assets/workspace.png)
 
-**Hosting:** public HTTPS on AWS EC2/K3s with PostgreSQL, two API replicas, two frontend replicas, and a scheduled worker. Live checks exercised database restoration, isolated deployment failures, and HPA scaling **2 → 3 → 4 → 2**. Prometheus/Grafana were verified during a bounded operations exercise; the full monitoring stack is not kept running on the small host. See the [dated evidence and current revision](docs/VERIFICATION.md).
+**Hosting:** release `5af1c16` runs over public HTTPS on AWS EC2/K3s, using a `t3.small` host, PostgreSQL, two API replicas, two frontend replicas, and a scheduled worker. Six consecutive readiness checks passed after the final host restart; the existing browser session and dependency data survived. Live operations checks also exercised database restoration, isolated deployment failures, and HPA scaling **2 → 3 → 4 → 2**. Prometheus/Grafana were verified during a bounded exercise and then removed. See the [dated evidence and current revision](docs/VERIFICATION.md).
 
 ## Deploy and operate
 
@@ -89,6 +89,8 @@ Browser checks also verified account registration/login, a real HTTPS probe, inc
 This deployment is constrained to the account's **AWS Free plan**. The deployment helper requires `FREE`/`ACTIVE` and positive finite USD credit before provisioning; a paid account with promotional credits is rejected. No account upgrade is authorized. The Free plan ends when its time or credits run out, so availability is temporary: the observed account expiry is **9 April 2027**, or earlier if credits run out. The deployment consumes credits and does not provide permanently free infrastructure. See [AWS's Free plan terms](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html) and the [deployment boundary](docs/DEPLOYMENT.md).
 
 EKS manifests remain available as reference infrastructure, but EKS apply/destroy is **unverified** and is not part of this account's authorized deployment.
+
+The [project instructions](AGENTS.md) preserve this Free-plan boundary for future maintenance.
 
 ## Current limits
 
