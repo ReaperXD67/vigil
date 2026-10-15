@@ -1,0 +1,48 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: vigil-worker}
+spec:
+  replicas: 1
+  # Prevent two scheduler instances during a rolling update.
+  strategy: {type: Recreate}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels: {app.kubernetes.io/name: vigil, app.kubernetes.io/component: worker}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: vigil, app.kubernetes.io/component: worker}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: worker
+          image: "{{ .Values.backend.image }}:{{ required "backend.tag is required" .Values.backend.tag }}"
+          command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports: [{name: http, containerPort: 8000}]
+          envFrom: [{secretRef: {name: {{ .Values.existingSecret }}}}]
+          env:
+            {{- range $key, $value := .Values.env }}
+            {{- if ne $key "CHECK_WORKER_ENABLED" }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            - {name: CHECK_WORKER_ENABLED, value: "true"}
+          startupProbe: {httpGet: {path: /health, port: http}, periodSeconds: 3, failureThreshold: 30}
+          readinessProbe: {httpGet: {path: /ready, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 20}
+          resources: {{- toYaml .Values.worker.resources | nindent 12 }}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {sizeLimit: 32Mi}}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vigil-worker
+  labels: {app.kubernetes.io/name: vigil, app.kubernetes.io/component: worker, vigil-metrics: "true"}
+spec:
+  selector: {app.kubernetes.io/name: vigil, app.kubernetes.io/component: worker}
+  ports: [{name: http, port: 8000, targetPort: http}]
+{{- end }}

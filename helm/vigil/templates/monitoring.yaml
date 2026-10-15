@@ -1,0 +1,31 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vigil
+  labels: {release: {{ .Values.monitoring.release | quote }}}
+spec:
+  selector:
+    matchLabels: {app.kubernetes.io/name: vigil, vigil-metrics: "true"}
+  endpoints: [{port: http, path: /metrics, interval: 30s, scrapeTimeout: 10s}]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vigil
+  labels: {release: {{ .Values.monitoring.release | quote }}}
+spec:
+  groups:
+    - name: vigil.availability
+      rules:
+        - alert: VigilBackendUnavailable
+          expr: (sum(up{namespace="{{ .Release.Namespace }}",service="vigil-backend"}) < 1) or absent(up{namespace="{{ .Release.Namespace }}",service="vigil-backend"})
+          for: 2m
+          labels: {severity: critical}
+          annotations: {summary: "Vigil has no healthy API scrape targets", runbook_url: "https://github.com/ReaperXD67/vigil/blob/main/docs/OPERATIONS.md"}
+        - alert: VigilHighErrorRate
+          expr: sum(rate(vigil_http_errors_total{namespace="{{ .Release.Namespace }}"}[5m])) / clamp_min(sum(rate(vigil_http_requests_total{namespace="{{ .Release.Namespace }}"}[5m])), 0.001) > 0.05
+          for: 5m
+          labels: {severity: warning}
+          annotations: {summary: "Vigil API error ratio exceeds 5%"}
+{{- end }}

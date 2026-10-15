@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: vigil-postgres}
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: vigil-postgres}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/name: vigil}
+      ports: [{protocol: TCP, port: 5432}]

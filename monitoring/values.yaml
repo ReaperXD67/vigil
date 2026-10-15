@@ -1,0 +1,54 @@
+# Deliberately small, private monitoring profile. Prefer >=4GiB host memory.
+fullnameOverride: monitoring
+alertmanager:
+  enabled: false
+defaultRules:
+  create: false
+kubeEtcd: {enabled: false}
+kubeControllerManager: {enabled: false}
+kubeScheduler: {enabled: false}
+kubeProxy: {enabled: false}
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  defaultDashboardsEnabled: false
+  ingress: {enabled: false}
+  service: {type: ClusterIP}
+  persistence: {enabled: false}
+  resources:
+    requests: {cpu: 25m, memory: 96Mi}
+    limits: {cpu: 250m, memory: 256Mi}
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: monitoring
+prometheus:
+  ingress: {enabled: false}
+  prometheusSpec:
+    retention: 6h
+    retentionSize: 500MB
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    resources:
+      requests: {cpu: 100m, memory: 192Mi}
+      limits: {cpu: 500m, memory: 512Mi}
+    serviceMonitorSelector: {matchLabels: {release: monitoring}}
+    serviceMonitorNamespaceSelector: {}
+    ruleSelector: {matchLabels: {release: monitoring}}
+    ruleNamespaceSelector: {}
+prometheusOperator:
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 250m, memory: 192Mi}
+kube-state-metrics:
+  resources:
+    requests: {cpu: 20m, memory: 32Mi}
+    limits: {cpu: 150m, memory: 128Mi}
+prometheus-node-exporter:
+  resources:
+    requests: {cpu: 10m, memory: 24Mi}
+    limits: {cpu: 100m, memory: 64Mi}

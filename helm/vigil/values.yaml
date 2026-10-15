@@ -1,0 +1,40 @@
+backend:
+  image: ghcr.io/reaperxd67/vigil-backend
+  tag: ""
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 384Mi}
+frontend:
+  image: ghcr.io/reaperxd67/vigil-frontend
+  tag: ""
+  replicas: 2
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {cpu: 200m, memory: 128Mi}
+existingSecret: vigil-runtime
+worker:
+  enabled: true
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 250m, memory: 256Mi}
+env:
+  APP_ENV: production
+  CHECK_WORKER_ENABLED: "false"
+  FORWARDED_ALLOW_IPS: "127.0.0.1,10.52.0.0/16,10.68.0.0/16"
+  ALLOWED_ORIGINS: ""
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 75
+ingress:
+  enabled: false
+  className: traefik
+  host: ""
+  tls: false
+  issuer: letsencrypt
+  rateLimitPerMinute: 180
+monitoring:
+  enabled: false
+  release: monitoring
