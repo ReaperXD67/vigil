@@ -45,6 +45,17 @@ class ServiceCreate(Input):
         return value
 
 
+class DependencyCreate(Input):
+    upstream_id: str = Field(min_length=36, max_length=36)
+    service_id: str = Field(min_length=36, max_length=36)
+
+    @model_validator(mode="after")
+    def different_endpoints(self):
+        if self.upstream_id == self.service_id:
+            raise ValueError("A service cannot depend on itself")
+        return self
+
+
 class PartialInput(Input):
     @model_validator(mode="before")
     @classmethod

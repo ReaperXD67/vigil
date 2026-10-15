@@ -16,10 +16,11 @@ from sqlalchemy.orm import Session
 from . import database
 from .config import settings
 from .database import get_db
-from .models import Activity, CapacityLock, Check, Incident, IncidentUpdate, RateWindow, Service, SessionToken, Task, User, now
+from .dependency_graph import has_path
+from .models import Activity, CapacityLock, Check, Incident, IncidentUpdate, RateWindow, Service, ServiceDependency, SessionToken, Task, User, now
 from .presenters import activity_json, check_json, incident_json, iso, service_json, task_json, user_json
 from .probe import UnsafeTarget, probe
-from .schemas import IncidentCreate, IncidentPatch, Login, Register, ServiceCreate, ServicePatch, TaskCreate, TaskPatch, UpdateCreate
+from .schemas import DependencyCreate, IncidentCreate, IncidentPatch, Login, Register, ServiceCreate, ServicePatch, TaskCreate, TaskPatch, UpdateCreate
 from .security import COOKIE_NAME, auth_limit, create_session, current_user, durable_limit, limiter, password_hash, password_matches, token_hash
 from .seed import seed_demo
 
@@ -32,6 +33,7 @@ latency_sum = 0.0
 latency_total = 0
 STARTED_AT = time.monotonic()
 worker_stop = threading.Event()
+MAX_DEPENDENCIES = 100
 
 
 def metric(name):
@@ -217,6 +219,7 @@ def ready(db: Session = Depends(get_db)):
         db.execute(select(User.id).limit(1))
         db.execute(select(Service.last_attempted_at).limit(1))
         db.execute(select(RateWindow.key_hash).limit(1))
+        db.execute(select(ServiceDependency.id).limit(1))
         if db.scalar(select(CapacityLock.name).where(CapacityLock.name == "workspaces")) is None:
             return JSONResponse({"status": "not_ready", "database": "migration_required"}, status_code=503)
     except SQLAlchemyError:
@@ -314,6 +317,56 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
 @app.get("/api/services")
 def services(user: User = Depends(current_user), db: Session = Depends(get_db)):
     return [service_json(db, item) for item in db.scalars(select(Service).where(Service.owner_id == user.id).order_by(Service.created_at))]
+
+
+def dependency_json(edge):
+    return {"id": edge.id, "upstream_id": edge.upstream_id, "service_id": edge.service_id, "is_sample": edge.is_sample, "created_at": iso(edge.created_at)}
+
+
+@app.get("/api/dependencies")
+def dependencies(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    return [dependency_json(edge) for edge in db.scalars(select(ServiceDependency).where(ServiceDependency.owner_id == user.id).order_by(ServiceDependency.created_at, ServiceDependency.id))]
+
+
+@app.get("/api/dependencies/{dependency_id}")
+def dependency_get(dependency_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    return dependency_json(owned(db, ServiceDependency, dependency_id, user))
+
+
+@app.post("/api/dependencies", status_code=201)
+def dependency_create(data: DependencyCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    # The per-workspace row update serializes graph mutations across API replicas.
+    # Cycle detection and insertion share this transaction, so simultaneous
+    # opposite edges cannot both pass against a stale graph.
+    quota(db, ServiceDependency, user, MAX_DEPENDENCIES)
+    upstream = owned(db, Service, data.upstream_id, user)
+    service = owned(db, Service, data.service_id, user)
+    edges = list(db.execute(select(ServiceDependency.upstream_id, ServiceDependency.service_id).where(ServiceDependency.owner_id == user.id)))
+    if (data.upstream_id, data.service_id) in edges:
+        raise HTTPException(409, "This dependency already exists.")
+    if has_path(edges, data.service_id, data.upstream_id):
+        raise HTTPException(409, "This dependency would create a cycle. Remove a conflicting dependency first.")
+    edge = ServiceDependency(owner_id=user.id, upstream_id=upstream.id, service_id=service.id, is_sample=user.is_demo)
+    try:
+        db.add(edge)
+        db.flush()
+        activity(db, user, "dependency.created", f"{service.name} now depends on {upstream.name}")
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "The dependency changed while saving. Refresh the map and try again.")
+    return dependency_json(edge)
+
+
+@app.delete("/api/dependencies/{dependency_id}")
+def dependency_delete(dependency_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    edge = owned(db, ServiceDependency, dependency_id, user)
+    upstream = owned(db, Service, edge.upstream_id, user)
+    service = owned(db, Service, edge.service_id, user)
+    activity(db, user, "dependency.deleted", f"Removed dependency: {service.name} on {upstream.name}")
+    db.delete(edge)
+    db.commit()
+    return {"ok": True}
 
 
 @app.post("/api/services", status_code=201)
@@ -531,7 +584,7 @@ def activities(limit: int = Query(20, ge=1, le=100), user: User = Depends(curren
 
 @app.get("/api/export")
 def export(user: User = Depends(current_user), db: Session = Depends(get_db)):
-    return {"schema_version": 1, "exported_at": iso(now()), "user": user_json(user), "services": services(user, db), "incidents": incidents(user, db), "tasks": tasks(user, db), "checks": [check_json(c) for c in db.scalars(select(Check).where(Check.owner_id == user.id).order_by(Check.checked_at))], "activity": [activity_json(a) for a in db.scalars(select(Activity).where(Activity.owner_id == user.id).order_by(Activity.created_at))]}
+    return {"schema_version": 1, "exported_at": iso(now()), "user": user_json(user), "services": services(user, db), "dependencies": dependencies(user, db), "incidents": incidents(user, db), "tasks": tasks(user, db), "checks": [check_json(c) for c in db.scalars(select(Check).where(Check.owner_id == user.id).order_by(Check.checked_at))], "activity": [activity_json(a) for a in db.scalars(select(Activity).where(Activity.owner_id == user.id).order_by(Activity.created_at))]}
 
 
 @app.get("/api/public/status/{workspace_slug}")

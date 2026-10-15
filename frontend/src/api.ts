@@ -29,6 +29,13 @@ export type Check = {
   checked_at: string;
   is_sample: boolean;
 };
+export type ServiceDependency = {
+  id: string;
+  upstream_id: string;
+  service_id: string;
+  is_sample: boolean;
+  created_at: string;
+};
 export type Incident = {
   id: string;
   title: string;

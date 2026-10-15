@@ -26,6 +26,17 @@ Service: `{id,name,url,description,status,last_checked,latency_ms,uptime,is_publ
 
 Check: `{id,service_id,status,latency_ms,status_code,error,checked_at,is_sample}`.
 
+## Service dependencies
+
+- `GET /dependencies` → `ServiceDependency[]`, oldest first.
+- `POST /dependencies` `{upstream_id,service_id}` → `ServiceDependency` (`201`). Both services must belong to the authenticated workspace.
+- `GET /dependencies/{id}` → `ServiceDependency`.
+- `DELETE /dependencies/{id}` → `{ok:true}`.
+
+ServiceDependency: `{id,upstream_id,service_id,is_sample,created_at}`. Direction is **upstream → dependent**: `service_id` depends on `upstream_id`. A connection declares a relationship; it never changes either service's health. The frontend computes potential downstream impact from this graph, not measured failure propagation or root cause.
+
+Self-dependencies return `422`; duplicates, cycles, and the 100-connection workspace limit return `409`. Foreign or missing endpoints/connections return `404`. Graph validation and insertion share a serialized workspace transaction, including across API replicas. Deleting a service or workspace cascades its connections. Dependencies are private and included in authenticated JSON exports, never public status responses.
+
 ## Incidents
 
 - `GET /incidents` → `Incident[]`, newest first.
@@ -52,9 +63,9 @@ Task: `{id,title,description,status,priority,incident_id,created_at,updated_at,i
 
 - `GET /stats` → `{total_services,operational_services,active_incidents,open_tasks,uptime,average_latency_ms,total_checks,is_demo}`. Metrics reflect retained checks; uptime/latency null with no data.
 - `GET /activity?limit=20` → `[{id,type,message,created_at,is_sample}]`, newest first (maximum 100).
-- `GET /export` → `{schema_version,exported_at,user,services,incidents,tasks,checks,activity}`. Only the authenticated workspace; no password or session secrets.
+- `GET /export` → `{schema_version,exported_at,user,services,dependencies,incidents,tasks,checks,activity}`. Only the authenticated workspace; no password or session secrets.
 - `GET /public/status/{workspace_slug}` → `{workspace_name,workspace_slug,is_demo,updated_at,services:[{id,name,description,status,last_checked,uptime,is_sample}]}`. Only services explicitly opted in via `is_public`; URLs/private data omitted. Unknown slug `404`.
 - `GET /health` and `GET /ready`: public liveness/readiness. Aliases at `/health` and `/ready`.
 - `GET /metrics`: minimal Prometheus operational counters, with `/metrics` alias. No user identifiers or service URLs.
 
-Demo workspace seeds four sample services (Edge API, Authentication, Event pipeline, Dashboard), sample checks, an investigating incident, and remediation tasks. The frontend must visibly label sample data. External service checks are synchronous and bounded to approximately 8 seconds; show a loading state.
+New demo workspaces seed four sample services (Edge API, Authentication, Event pipeline, Dashboard), three sample dependencies (Authentication → Edge API → Event pipeline → Dashboard), sample checks, an investigating incident, and remediation tasks. Existing workspaces are not backfilled with invented dependencies. The frontend must visibly label sample data. External service checks are synchronous and bounded to approximately 8 seconds; show a loading state.

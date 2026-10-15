@@ -11,6 +11,7 @@ import {
   ChevronDown,
   CircleAlert,
   Globe2,
+  GitBranch,
   LayoutDashboard,
   ListTodo,
   Loader2,
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 import { Brand, Github } from "./components/Brand";
 import { Badge, Empty, Modal, Submit } from "./components/UI";
+import Topology from "./components/Topology";
 import {
   api,
   post,
@@ -53,6 +55,7 @@ type Editor =
 const navItems = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "services", label: "Services", icon: Radio },
+  { id: "topology", label: "Dependencies", icon: GitBranch },
   { id: "incidents", label: "Incidents", icon: CircleAlert },
   { id: "tasks", label: "Recovery tasks", icon: ListTodo },
   { id: "activity", label: "Activity", icon: Activity },
@@ -196,9 +199,11 @@ export default function Workspace({ user }: { user: User }) {
           ? "A clear path to resolution."
           : section === "tasks"
             ? "Close every loose end."
-            : section === "activity"
-              ? "Your workspace, in motion."
-              : "Make it yours.";
+            : section === "topology"
+              ? "Know what depends on what."
+              : section === "activity"
+                ? "Your workspace, in motion."
+                : "Make it yours.";
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -574,9 +579,11 @@ export default function Workspace({ user }: { user: User }) {
                       ? "Keep the timeline, context, and response in one place."
                       : section === "tasks"
                         ? "Turn what happened into what happens next."
-                        : section === "activity"
-                          ? "A durable trail of changes across your workspace."
-                          : "Your workspace, your data, your infrastructure."}
+                        : section === "topology"
+                          ? "Map your service dependencies and explore potential downstream impact."
+                          : section === "activity"
+                            ? "A durable trail of changes across your workspace."
+                            : "Your workspace, your data, your infrastructure."}
               </p>
             </div>
             {["overview", "services"].includes(section) ? (
@@ -623,6 +630,15 @@ export default function Workspace({ user }: { user: User }) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
               >
+                {section === "topology" && (
+                  <Topology
+                    services={services}
+                    incidents={incidents}
+                    onAddService={() => setEditor({ kind: "service" })}
+                    onChanged={reload}
+                    notify={notify}
+                  />
+                )}
                 {section === "overview" && (
                   <>
                     <div className="metric-grid">

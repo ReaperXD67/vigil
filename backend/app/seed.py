@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from .models import Activity, Check, Incident, IncidentUpdate, Service, Task, now
+from .models import Activity, Check, Incident, IncidentUpdate, Service, ServiceDependency, Task, now
 
 
 def seed_demo(db, user):
@@ -15,6 +15,8 @@ def seed_demo(db, user):
         for sample in range(48):
             check_status = "degraded" if index == 2 and sample >= 44 else "operational"
             db.add(Check(owner_id=user.id, service_id=service.id, status=check_status, latency_ms=latency if check_status == "degraded" else 40 + ((sample * 7 + index * 13) % 65), status_code=200, checked_at=current - timedelta(minutes=2 + (47 - sample) * 30), is_sample=True))
+    for upstream, downstream in [(1, 0), (0, 2), (2, 3)]:
+        db.add(ServiceDependency(owner_id=user.id, upstream_id=services[upstream].id, service_id=services[downstream].id, is_sample=True))
     incident = Incident(owner_id=user.id, service_id=services[2].id, title="Elevated event processing latency", description="Sample incident: a queue backlog is delaying event delivery. This is a fictional scenario for exploring the workspace.", severity="major", status="investigating", created_at=current - timedelta(minutes=42), updated_at=current - timedelta(minutes=12), is_sample=True)
     db.add(incident)
     db.flush()
