@@ -8,6 +8,8 @@ See [deployment and costs](../docs/DEPLOYMENT.md) before provisioning and [opera
 
 Each profile includes a reviewable configuration template: [EC2 variables](ec2/terraform.tfvars.example) and [EKS variables](eks/terraform.tfvars.example). Copy the applicable file to `terraform.tfvars` to customize it locally. Both deployment gates remain `false` in the examples; the EC2 credit acknowledgement and separate EKS cost opt-in must be deliberate.
 
+The deployment helper checks the actual AWS account plan before applying changes: only `FREE`/`ACTIVE` with positive credits passes. Paid accounts fail even with unused credits. Delete-only cleanup remains available. No workflow upgrades the account; the public demo must remain on its time-limited Free plan.
+
 Both Terraform roots pass local validation; Helm and Kubernetes schema checks are recorded in [validation.txt](validation.txt). These results do not claim that EKS or the public AWS environment is running.
 
 Offline validation, which creates no cloud resources:

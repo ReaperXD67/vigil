@@ -19,13 +19,15 @@ aws ec2 describe-instance-types --profile scaler-lab --region ap-south-1 \
 
 The budget has three steady components: EC2 hours, gp3 GiB-months and public IPv4 hours. AWS lists IPv4 at $0.005/hour, approximately $3.65 for 730 hours, before applicable allowances. EC2 and EBS vary by region; data transfer, backups and logs can add usage. T3 CPU credits are set to `standard`, preventing unlimited-mode surplus CPU charges. [EC2 pricing](https://aws.amazon.com/ec2/pricing/on-demand/), [EBS pricing](https://aws.amazon.com/ebs/pricing/), [IPv4 pricing](https://aws.amazon.com/vpc/pricing/).
 
+The October 15, 2026 deployment preflight verified an active Free plan with enough remaining credit for this host. AWS's Price List API returned Mumbai Linux `t3.small` at $0.0224/hour and gp3 at $0.0912/GiB-month. At 730 hours, the selected host is approximately **$21.83/month** ($16.35 compute + $1.82 for 20 GiB + $3.65 IPv4), before variable transfer or backup usage. Credits offset eligible usage; this estimate is not a perpetual free-hosting promise. Recheck the account and prices before creating another environment.
+
 Lightsail is a possible alternative: its official 2 GiB bundle is $12/month and 4 GiB is $24/month including IPv4/storage/transfer allowance. It is not provisioned by this repository; do not infer a running Lightsail instance from a browser tab. [Lightsail bundles](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-bundles.html).
 
 ## Provision the host
 
 Requirements: Terraform 1.11+, AWS CLI v2, Python 3, authenticated deployment permissions, and images already published by GitHub Actions. On Windows the AWS CLI may live at `%LOCALAPPDATA%/Programs/Amazon/AWSCLIV2/aws.exe`.
 
-The helper privately passes temporary AWS browser-login credentials to Terraform's child environment; it never prints or stores them. From the repository root:
+The helper privately passes temporary AWS browser-login credentials to Terraform's child environment; it never prints or stores them. Before a Terraform apply, it independently requires AWS to report `FREE`, `ACTIVE`, and a positive USD credit balance. Paid accounts are rejected even when they have credits. Delete-only saved plans and explicit destroy commands remain available for cleanup. The helper never upgrades the account. From the repository root:
 
 ```sh
 python scripts/deploy-terraform.py --profile scaler-lab -- -chdir=infra/ec2 init
@@ -35,13 +37,21 @@ python scripts/deploy-terraform.py --profile scaler-lab -- -chdir=infra/ec2 appl
 python scripts/deploy-terraform.py --profile scaler-lab -- -chdir=infra/ec2 output
 ```
 
-The plan gate records that the operator has checked credits; it is not an automatic billing cap. AWS Free plan enforcement is separate. Keep an ongoing credit check outside the application and remove unused resources deliberately.
+In PowerShell, quote arguments containing filenames, such as `'-out=host.tfplan'`, so the shell does not split the extension into a separate argument.
+
+The Terraform variable records that the operator reviewed estimated usage; the helper checks the actual account plan. AWS's Free plan provides the no-charge protection and suspends/closes access when its credit or time limit ends. Never upgrade the account, join an AWS Organization, or enable services/enrollments that AWS documents as automatically changing the plan. A different operator can bypass a local script, so preserve that account boundary. This is time-limited hosting, not a guarantee of perpetual availability.
 
 Terraform launches an Amazon Linux 2023 host. User-data installs pinned K3s `v1.37.1+k3s1`, Helm `v3.22.0`, and clones the public repository to `/opt/vigil`. Ports 80/443 are public; SSH and Kubernetes port 6443 are closed. Administration uses SSM. Confirm `/var/log/vigil-bootstrap.log` ends with `VIGIL_BOOTSTRAP_COMPLETE` before deploying. The root volume stores PostgreSQL and is deleted when the EC2 instance is terminated; make an off-host backup first.
 
 ## Deploy the application and HTTPS
 
-Connect using the `admin_command` Terraform output, then run:
+Before each remote deployment, run this local check. It refuses an expired, paid, unknown, or empty-credit plan:
+
+```sh
+python scripts/deploy-terraform.py --profile scaler-lab --check-free-plan
+```
+
+Once that check succeeds, connect using the `admin_command` Terraform output and run:
 
 ```sh
 sudo -i

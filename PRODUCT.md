@@ -20,7 +20,11 @@ Service reliability monitoring, incidents, recovery tasks, and postmortems in on
 
 ## Capabilities and Constraints
 
-Meet the linked session21 Python DevOps capstone requirements. User requests public GitHub source with iterative pushes and end-to-end hosting, preferably within available AWS free credits. No permanent free-hosting claim. No payment processing or external notification sending without a later explicit request.
+Meet the linked session21 Python DevOps capstone requirements. User requests public GitHub source with iterative pushes and end-to-end hosting.
+
+**Hard hosting boundary, explicitly confirmed 15 October 2026:** keep AWS strictly on its Free account plan. Never upgrade it or enroll in anything that changes the plan (including Organizations or Control Tower). A paid account with promotional credits does not satisfy this requirement. Verify FREE/ACTIVE with positive credits before provisioning; stop if that cannot be verified. The host consumes credits and stops being available when the Free plan ends. Do not promise permanent free hosting or bank-charge protection after an outside account-plan change. The deployment helper enforces this check; cleanup remains available.
+
+No payment processing or external notification sending without a later explicit request.
 
 ## Brand Commitments
 

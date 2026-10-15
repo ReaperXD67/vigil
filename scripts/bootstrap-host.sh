@@ -30,6 +30,14 @@ printf '%s  /tmp/helm.tar.gz\n' "$EXPECTED_HELM_SHA" | sha256sum --check
 tar -xzf /tmp/helm.tar.gz -C /tmp
 install -m 755 /tmp/linux-amd64/helm /usr/local/bin/helm
 kubectl wait --for=condition=Ready node --all --timeout=180s
+# K3s creates bundled components asynchronously after the node becomes Ready.
+# Wait for the Helm controller to create Traefik before waiting on its rollout.
+for ((attempt = 0; attempt < 60; attempt++)); do
+  if kubectl -n kube-system get deployment/traefik >/dev/null 2>&1; then
+    break
+  fi
+  sleep 3
+done
 kubectl -n kube-system rollout status deployment/traefik --timeout=180s
 git clone https://github.com/ReaperXD67/vigil.git /opt/vigil
 chmod 700 /root

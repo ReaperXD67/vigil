@@ -53,6 +53,8 @@ helm upgrade --install vigil ./helm/vigil --namespace "$NAMESPACE" \
   --set-string env.ALLOWED_ORIGINS="https://$PUBLIC_HOST" \
   --atomic --wait --timeout 8m
 kubectl -n "$NAMESPACE" wait --for=condition=Ready certificate/vigil-tls --timeout=300s
-curl --fail --retry 5 --retry-delay 3 "https://$PUBLIC_HOST/health"
-curl --fail --retry 5 --retry-delay 3 "https://$PUBLIC_HOST/ready"
+# Certificate readiness can precede Traefik reloading the issued certificate.
+# Retry that short propagation window without ever disabling TLS verification.
+curl --fail --retry 5 --retry-delay 3 --retry-all-errors "https://$PUBLIC_HOST/health"
+curl --fail --retry 5 --retry-delay 3 --retry-all-errors "https://$PUBLIC_HOST/ready"
 printf '\nVigil is serving https://%s at commit %s\n' "$PUBLIC_HOST" "$IMAGE_TAG"
