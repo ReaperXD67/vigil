@@ -1,0 +1,68 @@
+name: vigil
+
+# Local development defaults. See docs/CONTRIBUTING.md before exposing this stack.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vigil
+      POSTGRES_USER: vigil
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vigil-local-only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U vigil -d vigil"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    init: true
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://vigil:${POSTGRES_PASSWORD:-vigil-local-only}@postgres:5432/vigil
+      APP_ENV: ${APP_ENV:-development}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      CHECK_WORKER_ENABLED: ${CHECK_WORKER_ENABLED:-false}
+      CHECK_INTERVAL_SECONDS: ${CHECK_INTERVAL_SECONDS:-300}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+    init: true
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:8080"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:8080/]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres-data:
