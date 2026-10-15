@@ -165,6 +165,7 @@ jobs:
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           image-ref: ${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }}
+          version: v0.76.0
           format: table
           output: trivy-backend.txt
           scanners: vuln
@@ -177,6 +178,7 @@ jobs:
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           image-ref: ${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
+          version: v0.76.0
           format: table
           output: trivy-frontend.txt
           scanners: vuln

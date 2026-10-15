@@ -7,12 +7,13 @@ from collections import defaultdict, deque
 from datetime import timedelta
 
 from fastapi import Depends, HTTPException, Request, Response
-from sqlalchemy import delete, select
+from sqlalchemy import case, delete, select, update
 from sqlalchemy.orm import Session
 
 from .config import settings
+from . import database
 from .database import get_db
-from .models import SessionToken, User, now
+from .models import RateWindow, SessionToken, User, now
 
 COOKIE_NAME = "vigil_session"
 _password_slots = threading.BoundedSemaphore(2)
@@ -44,6 +45,8 @@ def token_hash(token: str) -> str:
 
 
 def create_session(db: Session, user: User, response: Response, request: Request):
+    # Serialize session allocation across replicas so the cap cannot race.
+    db.execute(update(User).where(User.id == user.id).values(quota_revision=User.quota_revision + 1))
     # Rotate the browser's prior token on login; retain sessions on other devices.
     old = request.cookies.get(COOKIE_NAME)
     if old:
@@ -99,3 +102,33 @@ class RateLimiter:
 
 
 limiter = RateLimiter()
+
+
+def durable_limit(key: str, maximum: int, seconds: int = 60) -> bool:
+    """Atomic, shared fixed windows survive API restart and multiple replicas."""
+    current = now()
+    expires = current + timedelta(seconds=seconds)
+    key_hash = hashlib.sha256(key.encode()).hexdigest()
+    with database.SessionLocal() as db:
+        dialect = db.get_bind().dialect.name
+        if dialect == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert
+        elif dialect == "sqlite":
+            from sqlalchemy.dialects.sqlite import insert
+        else:
+            raise RuntimeError("Durable limits require PostgreSQL or SQLite")
+        expired = RateWindow.expires_at <= current
+        statement = insert(RateWindow).values(key_hash=key_hash, count=1, expires_at=expires).on_conflict_do_update(
+            index_elements=[RateWindow.key_hash],
+            set_={"count": case((expired, 1), else_=RateWindow.count + 1), "expires_at": case((expired, expires), else_=RateWindow.expires_at)},
+            where=expired | (RateWindow.count < maximum),
+        ).returning(RateWindow.count)
+        allowed = db.execute(statement).scalar_one_or_none() is not None
+        db.commit()
+        return allowed
+
+
+def auth_limit(request: Request):
+    ip = request.client.host if request.client else "unknown"
+    if not durable_limit(f"auth:{ip}", 12):
+        raise HTTPException(429, "Too many authentication attempts. Try again in a minute.", headers={"Retry-After": "60"})

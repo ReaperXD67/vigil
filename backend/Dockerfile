@@ -1,11 +1,13 @@
-FROM python:3.12-slim
+FROM python:3.12.15-alpine3.24
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
-    && groupadd --gid 10001 vigil \
-    && useradd --uid 10001 --gid vigil --no-create-home vigil
+RUN apk upgrade --no-cache \
+    && apk add --no-cache ca-certificates \
+    && pip install --no-cache-dir --only-binary=:all: -r requirements.txt \
+    && addgroup -g 10001 -S vigil \
+    && adduser -u 10001 -S -D -H -G vigil vigil
 COPY --chown=vigil:vigil app ./app
 COPY --chown=vigil:vigil alembic ./alembic
 COPY --chown=vigil:vigil alembic.ini ./alembic.ini

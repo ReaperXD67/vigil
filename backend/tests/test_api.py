@@ -157,6 +157,7 @@ def test_checks_update_real_stats_and_reset_on_url_change(registered, monkeypatc
     assert result.status_code == 200 and result.json()["is_sample"] is False
     stats = client.get("/api/stats").json()
     assert stats["total_checks"] == 1 and stats["uptime"] == 100 and stats["average_latency_ms"] == 75.5
+    limiter.clear()  # Simulate another process or an API restart.
     assert client.post(f"/api/services/{service['id']}/check").status_code == 429
     assert len(client.get(f"/api/services/{service['id']}/checks").json()) == 1
     changed = client.patch(f"/api/services/{service['id']}", json={"url": "https://www.example.com"}).json()
@@ -232,3 +233,119 @@ def test_readiness_fails_closed(client):
         assert client.get("/ready").status_code == 503
     finally:
         app.dependency_overrides.clear()
+
+
+def test_password_whitespace_is_preserved(client):
+    password = "  exact-password-with-spaces  "
+    response = client.post("/api/auth/register", json={"name": " Test User ", "email": "spaces@example.com", "password": password})
+    assert response.status_code == 201 and response.json()["user"]["name"] == "Test User"
+    client.post("/api/auth/logout")
+    assert client.post("/api/auth/login", json={"email": "spaces@example.com", "password": password.strip()}).status_code == 401
+    assert client.post("/api/auth/login", json={"email": "spaces@example.com", "password": password}).status_code == 200
+
+
+def test_demo_and_registered_capacity_are_enforced(client, monkeypatch):
+    monkeypatch.setattr(settings, "max_demo_workspaces", 1)
+    monkeypatch.setattr(settings, "max_registered_workspaces", 1)
+    assert client.post("/api/auth/demo").status_code == 200
+    client.cookies.clear()
+    assert client.post("/api/auth/demo").status_code == 503
+    assert client.post("/api/auth/register", json={"name": "First", "email": "first@example.com", "password": "long-valid-password"}).status_code == 201
+    assert client.post("/api/auth/register", json={"name": "Second", "email": "second@example.com", "password": "long-valid-password"}).status_code == 503
+
+
+def test_critical_rate_limits_are_shared_atomic_and_expire(client):
+    from concurrent.futures import ThreadPoolExecutor
+    from app.security import durable_limit
+    from app.models import RateWindow
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        allowed = list(executor.map(lambda _: durable_limit("parallel-test", 3), range(12)))
+    assert sum(allowed) == 3
+    limiter.clear()
+    assert durable_limit("parallel-test", 3) is False
+    with database.SessionLocal() as db:
+        bucket = db.scalar(select(RateWindow))
+        bucket.expires_at = now() - timedelta(seconds=1)
+        db.commit()
+    assert durable_limit("parallel-test", 3) is True
+
+
+def test_auth_limits_survive_process_limiter_reset(client):
+    from app.security import durable_limit
+    for _ in range(12):
+        assert durable_limit("auth:testclient", 12)
+    limiter.clear()
+    assert client.post("/api/auth/login", json={"email": "nobody@example.com", "password": "nope"}).status_code == 429
+
+
+def test_production_cookie_and_error_headers(client, monkeypatch):
+    monkeypatch.setattr(settings, "app_env", "production")
+    response = client.post("/api/auth/register", json={"name": "Secure", "email": "secure@example.com", "password": "long-valid-password"}, headers={"Origin": "http://localhost:3000"})
+    assert response.status_code == 201
+    cookie = response.headers["set-cookie"].lower()
+    assert "secure" in cookie and "httponly" in cookie and "samesite=lax" in cookie and "path=/" in cookie
+    blocked = client.post("/api/tasks", json={"title": "Blocked"}, headers={"Origin": "https://evil.example"})
+    assert blocked.status_code == 403 and blocked.headers["cache-control"] == "no-store"
+    assert blocked.headers["x-content-type-options"] == "nosniff"
+
+
+def test_check_does_not_attach_old_measurement_to_new_url(registered, monkeypatch):
+    from app.models import Service
+    service = registered.post("/api/services", json={"name": "API", "url": "https://example.com"}).json()
+    def changed_while_probing(_):
+        with database.SessionLocal() as db:
+            item = db.get(Service, service["id"])
+            item.url = "https://www.example.com"
+            db.commit()
+        return ProbeResult("operational", 42, 200)
+    monkeypatch.setattr("app.main.probe", changed_while_probing)
+    assert registered.post(f"/api/services/{service['id']}/check").status_code == 409
+    assert registered.get("/api/stats").json()["total_checks"] == 0
+
+
+def test_production_settings_fail_closed():
+    from pydantic import ValidationError
+    from app.config import Settings
+    with pytest.raises(ValidationError):
+        Settings(app_env="prodution")
+    with pytest.raises(ValidationError):
+        Settings(app_env="production", allowed_origins="http://example.com")
+    with pytest.raises(ValidationError):
+        Settings(allowed_origins="https://*.example.com")
+    assert Settings(app_env="production", allowed_origins="https://vigil.example.com").secure_cookies is True
+
+
+def test_worker_retries_blocked_targets_on_schedule(registered, monkeypatch):
+    from app.main import maintenance_cycle
+    from app.models import Service
+    from app.models import RateWindow
+    from sqlalchemy import delete
+    item = registered.post("/api/services", json={"name": "Invalid DNS", "url": "https://example.com"}).json()
+    calls = []
+    def unsafe(url):
+        calls.append(url)
+        raise UnsafeTarget("Blocked network")
+    monkeypatch.setattr("app.main.probe", unsafe)
+    monkeypatch.setattr(settings, "check_worker_enabled", True)
+    maintenance_cycle()
+    with database.SessionLocal() as db:
+        service = db.get(Service, item["id"])
+        assert service.last_attempted_at is not None
+        assert service.last_checked is None and service.status == "unknown"
+        # Prove scheduling uses the attempt timestamp, not just the rate bucket.
+        db.execute(delete(RateWindow))
+        db.commit()
+    maintenance_cycle()
+    assert len(calls) == 1
+
+
+def test_worker_skips_demo_and_stops_cleanly(demo, monkeypatch):
+    from app.main import maintenance_cycle, worker_stop
+    calls = []
+    monkeypatch.setattr("app.main.probe", lambda url: calls.append(url))
+    monkeypatch.setattr(settings, "check_worker_enabled", True)
+    maintenance_cycle()
+    assert calls == []
+    worker_stop.set()
+    maintenance_cycle()
+    assert calls == []

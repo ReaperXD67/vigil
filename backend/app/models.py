@@ -24,6 +24,20 @@ class User(Base):
     workspace_slug: Mapped[str] = mapped_column(String(80), unique=True, index=True)
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    quota_revision: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+
+class CapacityLock(Base):
+    __tablename__ = "capacity_locks"
+    name: Mapped[str] = mapped_column(String(80), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class RateWindow(Base):
+    __tablename__ = "rate_windows"
+    key_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
 class SessionToken(Base):
@@ -42,6 +56,7 @@ class Service(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(24), default="unknown")
     last_checked: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_attempted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     latency_ms: Mapped[float | None] = mapped_column(Float)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
     is_sample: Mapped[bool] = mapped_column(Boolean, default=False)

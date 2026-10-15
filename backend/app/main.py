@@ -9,18 +9,18 @@ from datetime import timedelta
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
-from sqlalchemy import Integer, delete, func, select, text
+from sqlalchemy import Integer, delete, func, select, text, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from . import database
 from .config import settings
 from .database import get_db
-from .models import Activity, Check, Incident, IncidentUpdate, Service, SessionToken, Task, User, now
+from .models import Activity, CapacityLock, Check, Incident, IncidentUpdate, RateWindow, Service, SessionToken, Task, User, now
 from .presenters import activity_json, check_json, incident_json, iso, service_json, task_json, user_json
 from .probe import UnsafeTarget, probe
 from .schemas import IncidentCreate, IncidentPatch, Login, Register, ServiceCreate, ServicePatch, TaskCreate, TaskPatch, UpdateCreate
-from .security import COOKIE_NAME, create_session, current_user, limiter, password_hash, password_matches, token_hash
+from .security import COOKIE_NAME, auth_limit, create_session, current_user, durable_limit, limiter, password_hash, password_matches, token_hash
 from .seed import seed_demo
 
 logger = logging.getLogger("vigil")
@@ -31,6 +31,7 @@ latency_counts = {bound: 0 for bound in LATENCY_BUCKETS}
 latency_sum = 0.0
 latency_total = 0
 STARTED_AT = time.monotonic()
+worker_stop = threading.Event()
 
 
 def metric(name):
@@ -46,6 +47,7 @@ def owned(db: Session, model, resource_id: str, user: User):
 
 
 def quota(db, model, user, maximum):
+    db.execute(update(User).where(User.id == user.id).values(quota_revision=User.quota_revision + 1))
     if db.scalar(select(func.count()).select_from(model).where(model.owner_id == user.id)) >= maximum:
         raise HTTPException(409, f"Workspace limit reached ({maximum}). Remove an existing item first.")
 
@@ -58,6 +60,7 @@ def activity(db, user, kind, message):
 
 
 def prune_expired(db):
+    db.execute(delete(RateWindow).where(RateWindow.expires_at < now()))
     db.execute(delete(SessionToken).where(SessionToken.expires_at < now()))
     db.execute(delete(User).where(User.is_demo.is_(True), User.created_at < now() - timedelta(hours=settings.demo_hours)))
     db.commit()
@@ -66,7 +69,9 @@ def prune_expired(db):
 def record_check(db, user, service, result):
     check = Check(owner_id=user.id, service_id=service.id, status=result.status, latency_ms=result.latency_ms, status_code=result.status_code, error=result.error)
     previous_status = service.status
-    service.status, service.latency_ms, service.last_checked = result.status, result.latency_ms, now()
+    changed = db.execute(update(Service).where(Service.id == service.id, Service.owner_id == user.id, Service.url == service.url).values(status=result.status, latency_ms=result.latency_ms, last_checked=now()))
+    if changed.rowcount != 1:
+        raise HTTPException(409, "The service was changed during the check. Run a new check for its current endpoint.")
     db.add(check)
     if previous_status != result.status:
         activity(db, user, "service.status", f"{service.name} changed from {previous_status} to {result.status}")
@@ -77,6 +82,13 @@ def record_check(db, user, service, result):
     return check
 
 
+def mark_attempt(db, service):
+    changed = db.execute(update(Service).where(Service.id == service.id, Service.url == service.url).values(last_attempted_at=now()))
+    if changed.rowcount != 1:
+        raise HTTPException(409, "The service changed before its check could start.")
+    db.commit()
+
+
 def maintenance_cycle():
     with database.SessionLocal() as db:
         prune_expired(db)
@@ -84,12 +96,15 @@ def maintenance_cycle():
             return
         interval = max(60, settings.check_interval_seconds)
         cutoff = now() - timedelta(seconds=interval)
-        services = db.scalars(select(Service).join(User, Service.owner_id == User.id).where(User.is_demo.is_(False), (Service.last_checked.is_(None) | (Service.last_checked < cutoff))).limit(25)).all()
+        services = db.scalars(select(Service).join(User, Service.owner_id == User.id).where(User.is_demo.is_(False), (Service.last_attempted_at.is_(None) | (Service.last_attempted_at < cutoff))).order_by(Service.last_attempted_at.asc().nullsfirst()).limit(25)).all()
         for service in services:
-            if not limiter.allow(f"probe:{service.id}", 1):
+            if worker_stop.is_set():
+                break
+            if not durable_limit(f"probe:{service.id}", 1):
                 continue
             user = db.get(User, service.owner_id)
             try:
+                mark_attempt(db, service)
                 result = probe(service.url)
                 record_check(db, user, service, result)
             except UnsafeTarget:
@@ -114,10 +129,16 @@ async def lifespan(app):
     # Production uses the checked-in Alembic migration, never implicit DDL.
     if settings.app_env != "production":
         database.Base.metadata.create_all(database.engine)
+        with database.SessionLocal() as db:
+            if not db.get(CapacityLock, "workspaces"):
+                db.add(CapacityLock(name="workspaces"))
+                db.commit()
+    worker_stop.clear()
     worker = asyncio.create_task(maintenance_loop())
     try:
         yield
     finally:
+        worker_stop.set()
         worker.cancel()
         with suppress(asyncio.CancelledError):
             await worker
@@ -151,11 +172,6 @@ async def enforce_boundary(request: Request, call_next):
     if not limiter.allow(f"{category}:{ip}", maximum):
         return JSONResponse({"detail": "Too many requests. Try again in a minute."}, status_code=429, headers={"Retry-After": "60"})
     response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Cache-Control"] = "no-store"
-    if settings.secure_cookies:
-        response.headers["Strict-Transport-Security"] = "max-age=31536000"
     return response
 
 
@@ -166,6 +182,11 @@ async def boundary(request: Request, call_next):
     metric("requests")
     try:
         response = await enforce_boundary(request, call_next)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Cache-Control"] = "no-store"
+        if settings.secure_cookies:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000"
         if response.status_code >= 500:
             metric("errors")
         return response
@@ -194,6 +215,10 @@ def ready(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
         db.execute(select(User.id).limit(1))
+        db.execute(select(Service.last_attempted_at).limit(1))
+        db.execute(select(RateWindow.key_hash).limit(1))
+        if db.scalar(select(CapacityLock.name).where(CapacityLock.name == "workspaces")) is None:
+            return JSONResponse({"status": "not_ready", "database": "migration_required"}, status_code=503)
     except SQLAlchemyError:
         return JSONResponse({"status": "not_ready", "database": "unavailable"}, status_code=503)
     return {"status": "ready", "database": "ok"}
@@ -213,10 +238,15 @@ def prometheus_metrics():
 
 @app.post("/api/auth/register", status_code=201)
 def register(data: Register, request: Request, response: Response, db: Session = Depends(get_db)):
+    auth_limit(request)
     email = str(data.email).lower()
     if db.scalar(select(User.id).where(User.email == email)):
         raise HTTPException(409, "An account with that email already exists.")
-    user = User(email=email, name=data.name, password_hash=password_hash(data.password), workspace_slug=f"workspace-{secrets.token_hex(6)}")
+    hashed_password = password_hash(data.password)
+    db.execute(update(CapacityLock).where(CapacityLock.name == "workspaces").values(revision=CapacityLock.revision + 1))
+    if db.scalar(select(func.count()).select_from(User).where(User.is_demo.is_(False))) >= settings.max_registered_workspaces:
+        raise HTTPException(503, "Account capacity reached. Please try again later.")
+    user = User(email=email, name=data.name, password_hash=hashed_password, workspace_slug=f"workspace-{secrets.token_hex(6)}")
     db.add(user)
     try:
         db.flush()
@@ -231,6 +261,7 @@ def register(data: Register, request: Request, response: Response, db: Session =
 
 @app.post("/api/auth/login")
 def login(data: Login, request: Request, response: Response, db: Session = Depends(get_db)):
+    auth_limit(request)
     user = db.scalar(select(User).where(User.email == str(data.email).lower(), User.is_demo.is_(False)))
     if not password_matches(data.password, user.password_hash if user else None):
         raise HTTPException(401, "Email or password is incorrect.")
@@ -247,10 +278,12 @@ def demo(request: Request, response: Response, db: Session = Depends(get_db)):
             return {"user": user_json(existing)}
     except HTTPException:
         pass
+    auth_limit(request)
     ip = request.client.host if request.client else "unknown"
-    if not limiter.allow(f"demo:{ip}", 5):
+    if not durable_limit(f"demo:{ip}", 5):
         raise HTTPException(429, "Demo creation limit reached. Please wait one minute.")
     prune_expired(db)
+    db.execute(update(CapacityLock).where(CapacityLock.name == "workspaces").values(revision=CapacityLock.revision + 1))
     if db.scalar(select(func.count()).select_from(User).where(User.is_demo.is_(True))) >= settings.max_demo_workspaces:
         raise HTTPException(503, "The demo is at capacity. Please try again later.")
     suffix = secrets.token_hex(8)
@@ -306,6 +339,7 @@ def service_patch(service_id: str, data: ServicePatch, user: User = Depends(curr
     if "url" in values and values["url"] != service.url:
         db.execute(delete(Check).where(Check.service_id == service.id))
         service.status, service.last_checked, service.latency_ms = "unknown", None, None
+        service.last_attempted_at = None
     for key, value in values.items():
         setattr(service, key, value)
     activity(db, user, "service.updated", f"Service updated: {service.name}")
@@ -333,8 +367,9 @@ def service_check(service_id: str, user: User = Depends(current_user), db: Sessi
     service = owned(db, Service, service_id, user)
     if user.is_demo:
         raise HTTPException(403, "External checks require a registered account. Demo telemetry is sample data.")
-    if not limiter.allow(f"probe:{service.id}", 1):
+    if not durable_limit(f"probe:{service.id}", 1):
         raise HTTPException(429, "Wait one minute between checks for this service.")
+    mark_attempt(db, service)
     try:
         result = probe(service.url)
     except UnsafeTarget as exc:
@@ -376,6 +411,7 @@ def transition(incident, status):
 
 
 def timeline_quota(db, incident):
+    db.execute(update(User).where(User.id == incident.owner_id).values(quota_revision=User.quota_revision + 1))
     count = db.scalar(select(func.count()).select_from(IncidentUpdate).where(IncidentUpdate.incident_id == incident.id))
     if count >= 200:
         raise HTTPException(409, "Incident timeline limit reached (200).")

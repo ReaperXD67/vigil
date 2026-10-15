@@ -15,12 +15,19 @@ class Input(BaseModel):
 
 
 class Register(Input):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
     email: EmailStr = Field(max_length=320)
     password: str = Field(min_length=12, max_length=128)
     name: str = Field(min_length=1, max_length=80)
 
+    @field_validator("name", mode="before")
+    @classmethod
+    def trim_name(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
 
 class Login(Input):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
     email: EmailStr = Field(max_length=320)
     password: str = Field(min_length=1, max_length=128)
 
