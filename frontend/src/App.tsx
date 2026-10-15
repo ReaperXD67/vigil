@@ -11,6 +11,7 @@ import {
 import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react";
 const Landing = lazy(() => import("./Landing"));
 import { Brand } from "./components/Brand";
+import RouteErrorBoundary from "./components/RouteErrorBoundary";
 import { api, post, type User } from "./api";
 const Workspace = lazy(() => import("./Workspace"));
 const PublicStatus = lazy(() => import("./PublicStatus"));
@@ -238,22 +239,24 @@ function ProtectedWorkspace() {
 }
 export default function App() {
   return (
-    <Suspense
-      fallback={
-        <div className="page-loader">
-          <Brand />
-          <Loader2 className="spin" />
-          <p>Opening Vigil…</p>
-        </div>
-      }
-    >
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/app/*" element={<ProtectedWorkspace />} />
-        <Route path="/status/:slug" element={<PublicStatus />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <RouteErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="page-loader">
+            <Brand />
+            <Loader2 className="spin" />
+            <p>Opening Vigil…</p>
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/app/*" element={<ProtectedWorkspace />} />
+          <Route path="/status/:slug" element={<PublicStatus />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </RouteErrorBoundary>
   );
 }

@@ -8,6 +8,9 @@ metadata:
 spec:
   replicas: {{ .Values.frontend.replicas }}
   revisionHistoryLimit: 3
+  # Hashed frontend assets must match the index served by every ready Pod.
+  # A short cutover prevents old/new image mixtures on this single-host demo.
+  strategy: {type: Recreate}
   selector:
     matchLabels: {app.kubernetes.io/name: vigil, app.kubernetes.io/component: frontend}
   template:

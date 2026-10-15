@@ -33,7 +33,12 @@ Bounded application/infrastructure integration review after migration 81c61159f5
   All local Markdown links in infrastructure/deployment/operations docs: PASS.
   App upgrades preserve enabled monitoring values. Ingress preserves client IPs.
 
-These checks are local/static. They do not establish AWS provisioning, a running
-Kubernetes release, certificate issuance, real Grafana collection, load scaling,
-backup restoration or EKS operation. Live delivery evidence is recorded separately
-in the main README when verified. No cloud resources were created by this audit.
+The checks above are local/static and do not establish live runtime behavior.
+Live AWS delivery, certificate, monitoring, autoscaling and restore evidence is
+recorded separately in docs/VERIFICATION.md and the main README. EKS remains
+an optional source implementation, not a deployed environment.
+
+AWS Free-plan deployment boundary: 10 standard-library regression tests PASS.
+  PAID accounts with credits, expired plans, empty/null/non-finite balances and
+  malformed plan responses fail closed. Explicit/delete-only cleanup remains
+  possible. No upgrade or account-enrollment operation is implemented.

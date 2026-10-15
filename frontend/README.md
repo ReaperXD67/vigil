@@ -20,13 +20,15 @@ npm run build
 
 The production image builds static assets, serves them as non-root Nginx on port 8080, and proxies `/api` to `backend:8000`. The Helm chart supplies its Kubernetes service configuration.
 
+If an open browser encounters a missing route asset after an update, or a route fails while rendering, an accessible recovery screen offers **Reload page** and **Back home**. Both load a fresh document so a failed lazy import can recover. Recovery is manual, avoids reload loops, and never displays error internals. Unsaved edits on the failed page may need to be re-entered. This boundary requires the initial app bundle to load; it cannot recover a failed initial HTML or JavaScript download.
+
 ## Dependency map
 
 Open **Dependencies** in the workspace (`/app/topology`). Add an upstream service and the service that depends on it; arrows run in the direction of potential impact. Select a service to highlight direct and indirect dependents, their current health, and active incident severity. The map counts each reachable service once and uses the shortest dependency path for hop labels.
 
 Connections are private, persist through the API, and appear in workspace JSON exports. Add/remove dialogs handle server validation, including cycle rejection. Removing a service removes its connections. New demos include a labeled sample chain; existing workspaces begin with no declared connections. This is dependency analysis, not automatic discovery, measured failure propagation, or root-cause attribution.
 
-The map uses native keyboard-focusable buttons, an accessible connection list, and a scrollable diagram that stays within narrow screens. Pure graph tests cover directionality, diamonds, duplicate paths, malformed cycles, disconnected services, and stable layout; helper tests also validate data formatting and export safety.
+The map uses native keyboard-focusable buttons, an accessible connection list, and a scrollable diagram that stays within narrow screens. Pure graph tests cover directionality, diamonds, duplicate paths, malformed cycles, disconnected services, and stable layout. API-client tests verify session cookies, authentication/validation/gateway errors, and create/edit/delete request handling.
 
 ## Interaction and accessibility
 

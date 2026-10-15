@@ -68,6 +68,16 @@ kubectl -n monitoring port-forward service/monitoring-grafana 3001:80
 
 Access Grafana at `http://127.0.0.1:3001` from that workstation, or tunnel the loopback port through SSM. Retrieve `grafana-admin` from the cluster privately; do not paste credentials into issues or logs. Prometheus rules flag no API scrape target and sustained 5xx ratios. Notification delivery is not configured. Monitoring has short, ephemeral history to control memory/storage consumption.
 
+For a bounded monitoring demonstration, first verify the Free plan and temporarily use an eligible host with sufficient memory. A resize plan must show an in-place change, with no replacement of the instance or disk; keep a database backup. After collecting evidence, remove the temporary stack before returning to the smaller host:
+
+```sh
+helm upgrade vigil ./helm/vigil -n vigil --reuse-values --set monitoring.enabled=false --atomic --wait --timeout 5m
+helm uninstall monitoring -n monitoring --wait --timeout 3m
+kubectl delete namespace monitoring --wait=true --timeout=120s
+```
+
+These commands remove the dedicated monitoring namespace, including its ephemeral history and dashboard/admin configuration. The source dashboard remains in Git and `deploy-monitoring.sh` recreates the stack. Close any SSM or kubectl forwarding sessions used for review. Wait until the app is healthy and HPA demand has returned to its normal two replicas, then review and apply the Terraform change back to `t3.small`. Metrics Server and the app's internal metrics remain available without the Prometheus/Grafana workload.
+
 ## Isolated failure exercises
 
 ```sh
