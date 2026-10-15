@@ -142,6 +142,24 @@ jobs:
         run: |
           docker build --pull --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" --label "org.opencontainers.image.revision=${GITHUB_SHA}" --tag "${IMAGE_PREFIX}-backend:${GITHUB_SHA}" ./backend
           docker build --pull --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" --label "org.opencontainers.image.revision=${GITHUB_SHA}" --tag "${IMAGE_PREFIX}-frontend:${GITHUB_SHA}" ./frontend
+      - name: Start the complete stack from the images being scanned
+        run: |
+          docker tag "${IMAGE_PREFIX}-backend:${GITHUB_SHA}" vigil-backend:latest
+          docker tag "${IMAGE_PREFIX}-frontend:${GITHUB_SHA}" vigil-frontend:latest
+          docker compose up --no-build --wait --wait-timeout 120
+      - name: Verify runtime isolation and persistent browser-facing API
+        run: |
+          test "$(docker compose exec -T backend id -u)" != 0
+          test "$(docker compose exec -T frontend id -u)" != 0
+          python .github/scripts/compose-smoke.py
+      - name: Preserve complete-stack runtime evidence
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail 100
+      - name: Stop and remove the disposable CI database
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: docker compose down --volumes
       - name: Fail on backend HIGH or CRITICAL vulnerabilities
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0

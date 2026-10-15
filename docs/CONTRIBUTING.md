@@ -19,7 +19,7 @@ docker compose down
 
 Stopping the stack retains its database. `docker compose down --volumes` permanently deletes the local database; use it only when you intend to reset all local workspaces.
 
-The defaults are for local development. They bind application ports to `127.0.0.1`, use an explicitly local database password, and disable scheduled outbound checks. An internet deployment needs HTTPS, `APP_ENV=production`, `COOKIE_SECURE=true`, an exact HTTPS `ALLOWED_ORIGINS` value, and a unique database password. Set `TRUST_PROXY=true` only behind a trusted proxy that replaces forwarded headers. Keep `CHECK_WORKER_ENABLED=false` on replicated API processes unless a single dedicated worker is configured.
+The defaults are for local development. They bind application ports to `127.0.0.1`, use an explicitly local database password, and disable scheduled outbound checks. An internet deployment needs HTTPS, `APP_ENV=production`, `COOKIE_SECURE=true`, an exact HTTPS `ALLOWED_ORIGINS` value, and a unique database password. The default backend command does not trust forwarded headers; configure Uvicorn's trusted proxy addresses explicitly if your deployment requires them. Keep `CHECK_WORKER_ENABLED=false` on replicated API processes unless a single dedicated worker is configured.
 
 ## Develop without containers
 

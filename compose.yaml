@@ -30,7 +30,6 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       CHECK_WORKER_ENABLED: ${CHECK_WORKER_ENABLED:-false}
       CHECK_INTERVAL_SECONDS: ${CHECK_INTERVAL_SECONDS:-300}
-      TRUST_PROXY: ${TRUST_PROXY:-false}
     depends_on:
       postgres:
         condition: service_healthy

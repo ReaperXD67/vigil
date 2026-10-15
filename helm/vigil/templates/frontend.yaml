@@ -19,6 +19,10 @@ spec:
       containers:
         - name: frontend
           image: "{{ .Values.frontend.image }}:{{ required "frontend.tag must identify a published commit image" .Values.frontend.tag }}"
+          # The chart supplies the final config. Bypass image envsubst scripts
+          # that would try to rewrite the read-only ConfigMap mount.
+          command: ["nginx", "-g", "daemon off;"]
+          env: [{name: BACKEND_UPSTREAM, value: "vigil-backend:8000"}]
           ports: [{name: http, containerPort: 8080}]
           startupProbe: {httpGet: {path: /, port: http}, periodSeconds: 3, failureThreshold: 30}
           readinessProbe: {httpGet: {path: /, port: http}, periodSeconds: 5}
@@ -52,10 +56,16 @@ data:
       listen 8080;
       server_name _;
       root /usr/share/nginx/html;
+      index index.html;
       server_tokens off;
-      client_max_body_size 1m;
+      client_max_body_size 64k;
       add_header X-Content-Type-Options nosniff always;
+      add_header X-Frame-Options DENY always;
       add_header Referrer-Policy strict-origin-when-cross-origin always;
+      add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" always;
+      gzip on;
+      gzip_types text/css application/javascript application/json image/svg+xml;
       location /api/ {
         proxy_pass http://vigil-backend:8000;
         proxy_set_header Host $host;
@@ -69,5 +79,5 @@ data:
       location = /health { proxy_pass http://vigil-backend:8000; }
       location = /ready { proxy_pass http://vigil-backend:8000; }
       location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; try_files $uri =404; }
-      location / { try_files $uri $uri/ /index.html; }
+      location / { expires -1; try_files $uri $uri/ /index.html; }
     }
