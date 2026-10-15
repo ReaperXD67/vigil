@@ -7,6 +7,8 @@ An open-source reliability workspace for developers who want service health, inc
 [![Quality and containers](https://github.com/ReaperXD67/vigil/actions/workflows/ci.yml/badge.svg)](https://github.com/ReaperXD67/vigil/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-b5dfff)](LICENSE)
 
+![Vigil's animated constellation landing page](docs/assets/landing.png)
+
 ## What works
 
 - **Service monitoring:** real public HTTPS checks, latency history, retained availability, and an optional scheduled worker. Targets are validated and pinned to public IPs; redirects and private networks are blocked.
@@ -61,7 +63,11 @@ The API exposes `/health`, DB-aware `/ready`, Prometheus `/metrics`, Swagger `/d
 
 GitHub Actions runs Python tests, frontend type-check/build/tests, PostgreSQL migration/rollback checks, nonroot container builds, and a real Compose persistence smoke test. Both images must pass Trivy with **zero HIGH or CRITICAL findings** before SHA-tagged images are published to GHCR. Early incremental commits may fail while implementation is in progress; use the current commit’s run as evidence.
 
-Local verification completed: 63 backend tests, 7 frontend API-client tests, production frontend build, migration roundtrip, real HTTPS probe, Terraform validation, Helm lint/rendering, standard Kubernetes resource schemas, and desktop/mobile browser review. The backend is undergoing an additional production hardening pass; the current CI run is the authority for the latest test count.
+Verified in [CI run 38700091001](https://github.com/ReaperXD67/vigil/actions/runs/38700091001): **73 backend tests, 7 frontend tests**, production builds, both PostgreSQL migrations and rollback/reapplication, nonroot containers, and session/task persistence across a backend restart. Both images passed the strict security gate and are publicly pullable from GHCR at commit `fb0a8a71b0f6ef563eed206f3f98a54fe4577347`.
+
+Browser checks also verified account registration/login, a real HTTPS probe, incident resolution and postmortem download, task movement, command search, JSON export, and public-status privacy. Desktop and mobile interfaces were inspected. Terraform validation and Helm/schema checks passed locally. See the [verification record](docs/VERIFICATION.md) for evidence and limits.
+
+![Vigil workspace with clearly labeled demonstration data](docs/assets/workspace.png)
 
 **Hosting status:** AWS access currently needs reauthentication. No live deployment URL, EKS apply/destroy evidence, or live monitoring result is claimed yet. Infrastructure files alone are not deployment proof.
 

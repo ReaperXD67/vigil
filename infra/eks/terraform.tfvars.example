@@ -1,0 +1,13 @@
+# Optional educational profile; NOT part of the budget public deployment.
+# Copy to terraform.tfvars only after reviewing docs/DEPLOYMENT.md.
+# EKS charges for its control plane as well as nodes, disks, IPv4 and logs.
+enable_paid_eks = false
+
+region             = "ap-south-1"
+kubernetes_version = "1.35"
+node_instance_type = "t3.small"
+desired_nodes      = 2
+
+# Documentation-only address. Replace with your own current public IPv4 /32
+# before intentionally unlocking the paid profile. Never allow 0.0.0.0/0.
+admin_cidr = "203.0.113.10/32"

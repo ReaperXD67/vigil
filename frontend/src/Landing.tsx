@@ -325,7 +325,7 @@ export default function Landing() {
                   <div>
                     <span>Recovery tasks</span>
                     <strong>
-                      3 <small>in progress</small>
+                      3 <small>open</small>
                     </strong>
                   </div>
                 </div>
@@ -522,8 +522,8 @@ export default function Landing() {
                   # Your workspace. Your machine.
                 </span>
                 {"\n"}
-                <span className="code-blue">git clone</span> https://github.com/
-                {"\n"} ReaperXD67/vigil.git{"\n\n"}
+                <span className="code-blue">git clone</span>{" \\\n"}
+                {"  https://github.com/ReaperXD67/vigil.git\n\n"}
                 <span className="code-blue">cd</span> vigil{"\n"}
                 <span className="code-blue">cp</span> .env.example .env{"\n"}
                 <span className="code-comment">

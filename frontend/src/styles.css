@@ -3613,12 +3613,14 @@ select:hover {
   }
   .sidebar {
     transform: translateX(-100%);
+    visibility: hidden;
     transition: transform 0.3s var(--ease);
     width: 235px;
     padding-inline: 17px;
   }
   .sidebar.mobile-open {
     transform: translateX(0);
+    visibility: visible;
   }
   .sidebar-scrim {
     display: block;

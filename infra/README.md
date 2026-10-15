@@ -6,6 +6,8 @@
 
 See [deployment and costs](../docs/DEPLOYMENT.md) before provisioning and [operations](../docs/OPERATIONS.md) before deleting a host. Terraform state is ignored by Git. Keep state securely; it is required to manage and remove resources.
 
+Each profile includes a reviewable configuration template: [EC2 variables](ec2/terraform.tfvars.example) and [EKS variables](eks/terraform.tfvars.example). Copy the applicable file to `terraform.tfvars` to customize it locally. Both deployment gates remain `false` in the examples; the EC2 credit acknowledgement and separate EKS cost opt-in must be deliberate.
+
 Both Terraform roots pass local validation; Helm and Kubernetes schema checks are recorded in [validation.txt](validation.txt). These results do not claim that EKS or the public AWS environment is running.
 
 Offline validation, which creates no cloud resources:

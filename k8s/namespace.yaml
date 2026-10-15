@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vigil
+  labels:
+    app.kubernetes.io/name: vigil
+    app.kubernetes.io/part-of: vigil
