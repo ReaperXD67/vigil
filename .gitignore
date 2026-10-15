@@ -22,3 +22,6 @@ artifacts/
 !.impeccable/config.json
 playwright-report/
 test-results/
+.playwright-cli/
+output/
+*.tsbuildinfo
