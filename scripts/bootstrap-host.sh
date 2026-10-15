@@ -6,6 +6,21 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 K3S_VERSION='v1.37.1+k3s1'
 HELM_VERSION='v3.22.0'
 dnf install -y git curl-minimal jq tar gzip openssl python3
+mkdir -p /var/lib/rancher/k3s/server/manifests
+cat > /var/lib/rancher/k3s/server/manifests/traefik-config.yaml <<'YAML'
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      replicas: 1
+    service:
+      spec:
+        externalTrafficPolicy: Local
+YAML
 curl --fail --silent --show-error --location "https://raw.githubusercontent.com/k3s-io/k3s/${K3S_VERSION}/install.sh" -o /tmp/install-k3s.sh
 INSTALL_K3S_VERSION="$K3S_VERSION" INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_EXEC='server --write-kubeconfig-mode 600 --cluster-cidr 10.52.0.0/16 --service-cidr 10.53.0.0/16 --cluster-dns 10.53.0.10 --secrets-encryption' sh /tmp/install-k3s.sh
 curl --fail --silent --show-error --location "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" -o /tmp/helm.tar.gz

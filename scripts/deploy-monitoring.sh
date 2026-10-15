@@ -5,7 +5,7 @@ export KUBECONFIG=${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}
 cd "$(dirname "$0")/.."
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 if ! kubectl -n monitoring get secret grafana-admin >/dev/null 2>&1; then
-  python3 - <<'PY' | kubectl apply -f -
+  python3 - <<'PY' | kubectl create -f -
 import json,secrets
 print(json.dumps({"apiVersion":"v1","kind":"Secret","metadata":{"name":"grafana-admin","namespace":"monitoring"},"type":"Opaque","stringData":{"admin-user":"admin","admin-password":secrets.token_urlsafe(32)}}))
 PY

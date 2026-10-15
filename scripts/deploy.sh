@@ -22,7 +22,7 @@ kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -
 # Generate once. Secret JSON travels only through pipes, never command arguments,
 # shell tracing, Terraform state or Git. Preserve credentials across upgrades.
 if ! kubectl -n "$NAMESPACE" get secret vigil-database >/dev/null 2>&1; then
-  python3 - <<'PY' | kubectl apply -f -
+  python3 - <<'PY' | kubectl create -f -
 import json, secrets
 password = secrets.token_hex(32)
 items = [
@@ -47,6 +47,7 @@ if os.environ["ACME_EMAIL"]:
 print(json.dumps({"apiVersion":"cert-manager.io/v1","kind":"ClusterIssuer","metadata":{"name":"letsencrypt"},"spec":{"acme":acme}}))
 PY
 helm upgrade --install vigil ./helm/vigil --namespace "$NAMESPACE" \
+  --reset-then-reuse-values \
   --set-string backend.tag="$IMAGE_TAG" --set-string frontend.tag="$IMAGE_TAG" \
   --set ingress.enabled=true --set ingress.tls=true --set-string ingress.host="$PUBLIC_HOST" \
   --set-string env.ALLOWED_ORIGINS="https://$PUBLIC_HOST" \

@@ -9,4 +9,6 @@ spec:
     - from:
         - podSelector:
             matchLabels: {app.kubernetes.io/name: vigil}
+            matchExpressions:
+              - {key: app.kubernetes.io/component, operator: In, values: [backend, worker, migration]}
       ports: [{protocol: TCP, port: 5432}]

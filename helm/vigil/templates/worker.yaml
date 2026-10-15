@@ -30,7 +30,7 @@ spec:
             {{- end }}
             - {name: CHECK_WORKER_ENABLED, value: "true"}
           startupProbe: {httpGet: {path: /health, port: http}, periodSeconds: 3, failureThreshold: 30}
-          readinessProbe: {httpGet: {path: /ready, port: http}, periodSeconds: 10}
+          readinessProbe: {httpGet: {path: /ready, port: http}, periodSeconds: 10, timeoutSeconds: 3}
           livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 20}
           resources: {{- toYaml .Values.worker.resources | nindent 12 }}
           securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}

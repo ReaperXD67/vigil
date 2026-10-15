@@ -23,6 +23,11 @@ spec:
           workingDir: /app
           command: ["alembic", "upgrade", "head"]
           envFrom: [{secretRef: {name: {{ .Values.existingSecret }}}}]
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
           resources: {requests: {cpu: 50m, memory: 96Mi}, limits: {cpu: 500m, memory: 256Mi}}
           securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
           volumeMounts: [{name: tmp, mountPath: /tmp}]

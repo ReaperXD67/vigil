@@ -165,6 +165,7 @@ resource "aws_eks_addon" "addons" {
   cluster_name                = aws_eks_cluster.this.name
   addon_name                  = each.key
   addon_version               = each.value.version
+  configuration_values        = each.key == "vpc-cni" ? jsonencode({ enableNetworkPolicy = "true" }) : null
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
   depends_on                  = [aws_eks_node_group.this, aws_iam_role_policy_attachment.ebs, aws_eks_pod_identity_association.ebs]

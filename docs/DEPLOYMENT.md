@@ -60,6 +60,8 @@ The third script argument is an optional ACME contact email. Omit it if no conta
 
 `deploy.sh` generates a random database password once into two existing Kubernetes Secrets; no values are printed. It waits for the separate database release, installs cert-manager `v1.21.2`, configures a Let's Encrypt HTTP-01 issuer, then installs the application with an Alembic migration gate. HTTPS certificate readiness plus public `/health` and `/ready` checks must pass before the script reports success. An Ingress-specific HTTPS redirect leaves cert-manager's separate HTTP challenge route available.
 
+Application upgrades retain explicitly configured Helm values, including an enabled monitoring profile, while applying new chart defaults. The migration Job receives the same production environment/origin configuration as the API. Secret creation avoids the client-side apply annotation, so credentials are not duplicated into annotation text.
+
 Runtime environment uses `APP_ENV=production`, `ALLOWED_ORIGINS=https://<host>` and a secret `DATABASE_URL`. API replicas have background checks disabled to prevent duplicate scheduling. A separate single-replica worker enables checks for due non-demo services and uses a Recreate update strategy so two schedulers do not overlap during normal upgrades. Its Service is internal for metrics only. Cookie sessions are stored in PostgreSQL. Uvicorn trusts forwarded headers only from loopback and the explicit K3s/EKS private CIDRs; update `env.FORWARDED_ALLOW_IPS` if the cluster network changes.
 
 ## Optional observability
@@ -87,7 +89,7 @@ aws eks update-kubeconfig --region ap-south-1 --name vigil-eks
 kubectl apply -f infra/eks/storage-class.yaml
 helm repo add traefik https://traefik.github.io/charts
 helm repo update traefik
-helm upgrade --install traefik traefik/traefik --version 41.7.1 --namespace traefik --create-namespace --set deployment.replicas=1 --wait
+helm upgrade --install traefik traefik/traefik --version 41.7.1 --namespace traefik --create-namespace --set deployment.replicas=1 --set service.spec.externalTrafficPolicy=Local --wait
 kubectl -n traefik get service traefik
 ```
 

@@ -23,6 +23,16 @@ bash -n, invoked independently on each of five .sh scripts: PASS
 python -m py_compile scripts/deploy-terraform.py: PASS
 Docker manifest inspection postgres:17.11-alpine: EXISTS
 
+Bounded application/infrastructure integration review after migration 81c61159f5c4:
+  API, singleton worker and migration Job rendered environment accepted by the
+  actual backend Settings model with production HTTPS origin and secure cookies.
+  Migration Job now inherits the production environment; Alembic upgrade head
+  traverses both checked-in revisions. Database network policy permits backend,
+  worker and migration Pods; metrics Services match the ServiceMonitor selector.
+  Re-render/schema checks, both Terraform validations and Bash syntax: PASS.
+  All local Markdown links in infrastructure/deployment/operations docs: PASS.
+  App upgrades preserve enabled monitoring values. Ingress preserves client IPs.
+
 These checks are local/static. They do not establish AWS provisioning, a running
 Kubernetes release, certificate issuance, real Grafana collection, load scaling,
 backup restoration or EKS operation. Live delivery evidence is recorded separately

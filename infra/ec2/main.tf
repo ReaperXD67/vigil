@@ -96,7 +96,7 @@ resource "aws_instance" "host" {
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.web.id]
   iam_instance_profile        = aws_iam_instance_profile.host.name
-  user_data                   = file("${path.module}/../../scripts/bootstrap-host.sh")
+  user_data                   = replace(file("${path.module}/../../scripts/bootstrap-host.sh"), "\r\n", "\n")
   user_data_replace_on_change = false
   metadata_options {
     http_tokens                 = "required"

@@ -80,7 +80,7 @@ This creates a uniquely named `vigil-lab-*` namespace, demonstrates an invalid i
 
 The public deployment is one host and one database, so a host outage interrupts service. PostgreSQL credentials are existing Kubernetes Secrets; the K3s datastore uses secret encryption at rest and EC2 uses encrypted EBS. Keep the root kubeconfig private. Public metrics paths are blocked at nginx; collection uses the internal backend Service. Trusted proxy CIDRs are explicit.
 
-Session state is shared in PostgreSQL. Fine-grained authentication/check limits remain per API process, so their aggregate maximum grows with replicas. One Traefik controller applies a public per-client request cap (180/minute plus burst 60) before the app; if Traefik is scaled, that limiter also becomes per controller. A production multi-node service should add a shared rate-limit store or gateway. Do not claim globally exact limits from the default demo.
+Session state, authentication-attempt limits, demo-creation limits and per-service probe limits are shared in PostgreSQL. Migration `81c61159f5c4` adds the shared rate-window and capacity-lock tables before an application rollout. General read/write traffic limits remain per API process, so their aggregate maximum grows with replicas. One Traefik controller applies a public per-client request cap (180/minute plus burst 60) before the app, with local external-traffic routing to preserve source addresses. If Traefik is scaled, that limiter also becomes per controller. A production multi-node service should add a shared gateway for globally exact general traffic limits.
 
 ## Cost review and cleanup
 
