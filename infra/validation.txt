@@ -1,0 +1,29 @@
+Vigil infrastructure validation — 2026-10-15
+
+terraform 1.11.4; hashicorp/aws 5.100.0 (signed provider, lockfiles saved)
+terraform -chdir=infra/ec2 init -backend=false -input=false: PASS
+terraform -chdir=infra/ec2 validate: PASS
+terraform -chdir=infra/eks init -backend=false -input=false: PASS
+terraform -chdir=infra/eks validate: PASS
+terraform fmt -check -recursive infra: PASS
+
+helm lint helm/vigil, required image tags supplied: PASS
+helm lint helm/vigil-data: PASS
+helm template app with TLS, monitoring and worker enabled: PASS
+helm template data chart: PASS
+kubeconform 0.8.0, strict Kubernetes 1.35.0 schemas:
+  app + data: 18 objects, 14 valid, 0 invalid, 0 errors, 4 custom resources skipped
+  Custom CRD schema validation is not claimed.
+
+Official kube-prometheus-stack 92.7.0 Helm render using monitoring/values.yaml: PASS
+  OCI digest: sha256:dcba1db19eea51fa2e4ea358216669e6e26af79a84adffb803511c4761fcaaad
+  kubeconform: 48 objects, 39 valid, 0 invalid, 0 errors, 9 custom resources skipped
+
+bash -n, invoked independently on each of five .sh scripts: PASS
+python -m py_compile scripts/deploy-terraform.py: PASS
+Docker manifest inspection postgres:17.11-alpine: EXISTS
+
+These checks are local/static. They do not establish AWS provisioning, a running
+Kubernetes release, certificate issuance, real Grafana collection, load scaling,
+backup restoration or EKS operation. Live delivery evidence is recorded separately
+in the main README when verified. No cloud resources were created by this audit.
