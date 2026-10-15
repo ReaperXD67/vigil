@@ -14,7 +14,6 @@ import {
   X,
   ArrowDown,
   Workflow,
-  Globe2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import gsap from "gsap";
@@ -23,6 +22,7 @@ import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import { Brand, Github } from "./components/Brand";
 import Constellation from "./components/Constellation";
+import IncidentLab from "./components/IncidentLab";
 
 gsap.registerPlugin(ScrollTrigger);
 const REPO = "https://github.com/ReaperXD67/vigil";
@@ -82,28 +82,15 @@ export default function Landing() {
           duration: 1.05,
           ease: "power3.out",
         });
-        gsap.to(".hero-art", {
-          y: 80,
-          opacity: 0.3,
-          ease: "none",
-          scrollTrigger: {
-            trigger: ".hero",
-            start: "center top",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
-        gsap.utils
-          .toArray<HTMLElement>(".reveal")
-          .forEach((el) =>
-            gsap.from(el, {
-              y: 32,
-              opacity: 0.3,
-              duration: 0.8,
-              ease: "power3.out",
-              scrollTrigger: { trigger: el, start: "top 90%" },
-            }),
-          );
+        gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) =>
+          gsap.from(el, {
+            y: 32,
+            opacity: 0.3,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: { trigger: el, start: "top 90%" },
+          }),
+        );
       }, root);
       return () => {
         ctx.revert();
@@ -181,53 +168,40 @@ export default function Landing() {
         </div>
       </header>
       <main id="content">
-        <section className="hero">
+        <section className="hero hero-evolved">
           <div className="hero-copy wrap">
             <h1>
               See the signal.
               <br />
-              <span>Own the response.</span>
+              <span>Shape the response.</span>
             </h1>
-            <p>
-              Your services are connected. Your response should be, too.
-              <br className="desktop-break" /> The open-source workspace for
-              everything after deploy.
-            </p>
-            <div className="hero-buttons">
-              <Link className="button primary" to="/app?demo=1">
-                Explore the live demo <ArrowUpRight size={17} />
-              </Link>
-              <a
-                className="button secondary"
-                href={REPO}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Github size={17} /> View on GitHub
-              </a>
+            <div className="hero-invitation">
+              <p>
+                Turn scattered signals into a connected picture. Monitor your
+                services, trace their dependencies, and bring every incident
+                back under control.
+              </p>
+              <div className="hero-buttons">
+                <Link className="button primary" to="/app?demo=1">
+                  Explore the live demo <ArrowUpRight size={17} />
+                </Link>
+                <a
+                  className="button secondary"
+                  href={REPO}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Github size={17} /> View on GitHub
+                </a>
+              </div>
             </div>
           </div>
-          <div className="hero-art">
+          <div className="hero-stage wrap">
             <Constellation />
-            <div className="orb-label label-one">
-              <span className="signal-dot" /> edge-api <span>connected</span>
-            </div>
-            <div className="orb-label label-two">
-              <span className="signal-dot amber" /> event-pipeline{" "}
-              <span>needs attention</span>
-            </div>
-            <div className="orb-label label-three">
-              <span className="signal-dot" /> auth-service{" "}
-              <span>connected</span>
-            </div>
-            <div className="orb-caption">
-              A connected view of your services{" "}
-              <span>Illustrative topology</span>
-            </div>
           </div>
           <div className="hero-bottom wrap">
             <div>
-              <span className="tiny-dot" /> BUILT FOR THE MOMENTS THAT MATTER
+              <span className="tiny-dot" /> OPEN SOURCE. CONNECTED BY DESIGN.
             </div>
             <a href="#platform" aria-label="Discover Vigil">
               <ArrowDown size={17} />
@@ -264,115 +238,17 @@ export default function Landing() {
         <section id="platform" className="platform section-space wrap">
           <div className="section-intro reveal">
             <h2>
-              Less noise.
+              Pull one thread.
               <br />
-              <span>More knowing.</span>
+              <span>See what follows.</span>
             </h2>
             <p>
-              A failed request is a signal. A missed handoff is a problem.
-              <br />
-              Bring monitoring, incident response, and the work that follows
-              into one clear view.
+              An outage rarely stays in one place. Rehearse a failure, trace its
+              ripple through a system, and see how a clear response brings it
+              back. Press play, or move through the timeline yourself.
             </p>
           </div>
-          <div className="product-preview reveal">
-            <div className="preview-top">
-              <Brand />
-              <div>
-                <span className="signal-dot" /> Your workspace, at a glance
-              </div>
-              <span className="sample-label">Sample workspace</span>
-            </div>
-            <div className="preview-body">
-              <aside className="preview-sidebar">
-                <div className="selected">
-                  <Activity size={16} /> Overview
-                </div>
-                <div>
-                  <Radio size={16} /> Services
-                </div>
-                <div>
-                  <Globe2 size={16} /> Incidents
-                </div>
-                <div>
-                  <Check size={16} /> Recovery tasks
-                </div>
-                <span className="preview-sidebar-bottom">
-                  CALM, EVEN WHEN IT ISN’T.
-                </span>
-              </aside>
-              <div className="preview-content">
-                <div className="preview-heading">
-                  <div>
-                    <span>WORKSPACE OVERVIEW</span>
-                    <h3>The whole picture.</h3>
-                  </div>
-                  <span className="sample-label">Demo data</span>
-                </div>
-                <div className="preview-metrics">
-                  <div>
-                    <span>Services connected</span>
-                    <strong>
-                      4 <small>/ 4</small>
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Open incident</span>
-                    <strong className="warm">
-                      1 <small>investigating</small>
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Recovery tasks</span>
-                    <strong>
-                      3 <small>open</small>
-                    </strong>
-                  </div>
-                </div>
-                <div className="preview-table">
-                  {[
-                    "Edge API",
-                    "Authentication",
-                    "Event pipeline",
-                    "Dashboard",
-                  ].map((name, i) => (
-                    <div key={name}>
-                      <span>
-                        <span
-                          className={`signal-dot ${i === 2 ? "amber" : ""}`}
-                        />
-                        {name}
-                      </span>
-                      <div className="uptime-bars">
-                        {Array.from({ length: 32 }, (_, j) => (
-                          <i
-                            key={j}
-                            className={
-                              i === 2 && j > 23 && j < 28 ? "warning" : ""
-                            }
-                          />
-                        ))}
-                      </div>
-                      <span className={i === 2 ? "warm" : "muted"}>
-                        {i === 2 ? "Degraded" : "Operational"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="preview-incident">
-                  <span className="signal-dot amber" />
-                  <div>
-                    <strong>Elevated event processing latency</strong>
-                    <span>Investigating · Event pipeline</span>
-                  </div>
-                  <ArrowUpRight size={18} />
-                </div>
-              </div>
-            </div>
-            <Link to="/app?demo=1" className="preview-open">
-              Open the interactive workspace <ArrowUpRight size={17} />
-            </Link>
-          </div>
+          <IncidentLab />
           <div className="capabilities">
             {capabilities.map(({ title, text, icon: Icon }) => (
               <article key={title} className="reveal">
@@ -522,7 +398,8 @@ export default function Landing() {
                   # Your workspace. Your machine.
                 </span>
                 {"\n"}
-                <span className="code-blue">git clone</span>{" \\\n"}
+                <span className="code-blue">git clone</span>
+                {" \\\n"}
                 {"  https://github.com/ReaperXD67/vigil.git\n\n"}
                 <span className="code-blue">cd</span> vigil{"\n"}
                 <span className="code-blue">cp</span> .env.example .env{"\n"}

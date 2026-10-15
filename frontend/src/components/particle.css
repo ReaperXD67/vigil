@@ -1,0 +1,223 @@
+.particle-experience {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  isolation: isolate;
+}
+.particle-experience::before {
+  position: absolute;
+  z-index: -1;
+  inset: 5% 7% 15%;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 48%,
+    rgb(36 104 181 / 8%),
+    rgb(24 72 125 / 3%) 37%,
+    transparent 68%
+  );
+}
+.particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+  border-radius: 16px;
+}
+.particle-canvas:focus-visible {
+  outline: 1px solid #a9dbff;
+  outline-offset: -12px;
+}
+.particle-canvas--dragging {
+  cursor: grabbing;
+}
+.particle-interface {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+}
+.particle-controls {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  gap: 5px;
+  border: 1px solid #293645;
+  border-radius: 14px;
+  background: rgb(9 15 24 / 94%);
+  white-space: nowrap;
+}
+.particle-shapes {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.particle-shape,
+.particle-pause {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #a4b7ce;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 480;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease-out,
+    color 180ms ease-out;
+}
+.particle-shape:hover,
+.particle-pause:hover {
+  color: #eef8ff;
+  background: #152131;
+}
+.particle-shape--active,
+.particle-shape--active:hover {
+  color: #e9f6ff;
+  background: #213247;
+}
+.particle-shape--active svg {
+  color: #b7e2ff;
+}
+.particle-shape:focus-visible,
+.particle-pause:focus-visible,
+.particle-hint:focus-visible {
+  outline: 2px solid #b7e2ff;
+  outline-offset: 3px;
+}
+.particle-divider {
+  height: 22px;
+  width: 1px;
+  margin: 0 3px;
+  background: #293645;
+}
+.particle-pause {
+  min-width: 80px;
+  padding: 0 12px;
+  font-size: 11px;
+  color: #b9c9dd;
+}
+.particle-pause:disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+.particle-hint {
+  border: 0;
+  padding: 5px 8px;
+  min-height: 30px;
+  border-radius: 7px;
+  background: none;
+  color: #9aacbf;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  font: inherit;
+  font-size: 11px;
+  transition: color 180ms ease-out;
+}
+.particle-hint:hover {
+  color: #d2edff;
+}
+.particle-hint-separator {
+  padding: 0 9px;
+  color: #61768e;
+}
+.particle-unavailable {
+  position: absolute;
+  inset: 42% 20% auto;
+  color: #a4b7ce;
+  text-align: center;
+  font-size: 13px;
+}
+.particle-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.particle-experience--compact {
+  min-height: 0;
+  pointer-events: none;
+}
+.particle-experience--compact .particle-canvas {
+  cursor: default;
+}
+@media (max-width: 640px) {
+  .particle-experience {
+    min-height: 340px;
+  }
+  .particle-experience--compact {
+    min-height: 0;
+  }
+  .particle-interface {
+    bottom: 10px;
+    gap: 8px;
+  }
+  .particle-controls {
+    gap: 2px;
+    padding: 4px;
+    border-radius: 12px;
+  }
+  .particle-shapes {
+    gap: 1px;
+  }
+  .particle-shape {
+    gap: 5px;
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+  .particle-shape svg {
+    width: 13px;
+    height: 13px;
+  }
+  .particle-pause {
+    min-width: 40px;
+    padding: 0 10px;
+  }
+  .particle-pause span {
+    display: none;
+  }
+  .particle-divider {
+    margin: 0 2px;
+    height: 20px;
+  }
+  .particle-hint {
+    font-size: 10px;
+  }
+}
+@media (max-width: 360px) {
+  .particle-shape {
+    padding: 0 8px;
+  }
+  .particle-shape svg {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .particle-shape,
+  .particle-pause,
+  .particle-hint {
+    transition: none;
+  }
+}

@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   useNavigate,
+  useLocation,
   Link,
   useSearchParams,
 } from "react-router-dom";
@@ -174,6 +175,7 @@ function ProtectedWorkspace() {
   const [error, setError] = useState("");
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const route = useLocation();
   useEffect(() => {
     let active = true;
     const run = async () => {
@@ -183,14 +185,25 @@ function ProtectedWorkspace() {
           result = await workspaceSession(params.get("demo") === "1");
         } catch (error) {
           if ((error as { status: number }).status === 401) {
-            navigate("/login", { replace: true });
+            if (active) navigate("/login", { replace: true });
             return;
           }
           throw error;
         }
         if (active) {
           setUser(result.user);
-          if (params.get("demo")) navigate("/app", { replace: true });
+          if (params.has("demo")) {
+            const remaining = new URLSearchParams(params);
+            remaining.delete("demo");
+            navigate(
+              {
+                pathname: route.pathname,
+                search: remaining.toString(),
+                hash: route.hash,
+              },
+              { replace: true },
+            );
+          }
         }
       } catch (e) {
         if (active) setError((e as Error).message);

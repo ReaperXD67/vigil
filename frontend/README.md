@@ -30,6 +30,10 @@ The map uses native keyboard-focusable buttons, an accessible connection list, a
 
 ## Interaction and accessibility
 
-Dialogs use Radix focus management; task movement uses a keyboard-accessible status selector. The layout adapts to phones, and reduced-motion preferences disable continuous visual motion and smooth scrolling. Geist fonts are self-hosted. Operational sample data is labeled explicitly. The constellation is original decorative geometry, not live telemetry.
+The original particle sculpture uses raw WebGL with 10,400 desktop points, 7,200 on mobile, and a smaller compact variant. A Canvas2D fallback preserves the interaction when WebGL is unavailable. Click the sculpture or use Spiral/Cube/Tree/Orbit controls to morph; drag to rotate, or focus the canvas and use Enter/Space and arrow keys. Pause stops continuous motion. Geometry tests cover shape generation and camera fitting across rotation, aspect ratio, and morph overshoot.
+
+The landing page's **incident rehearsal** includes database, authentication, and queue scenarios. Playback and the time slider explore simulated impact; node selection exposes details. Copy link preserves the scenario and time in the URL, and Markdown export includes events reached so far. These are local educational scenarios, not live monitoring or automatic diagnoses.
+
+Dialogs use Radix focus management; task movement uses a keyboard-accessible status selector. The layout adapts to phones, and reduced-motion preferences disable continuous visual motion and smooth scrolling. Animation and rehearsal clocks suspend when hidden or offscreen. Geist fonts are self-hosted. Operational sample data is labeled explicitly. The sculpture is original decorative geometry, not live telemetry. Lenis and GSAP provide the landing page's scroll behavior; the particle effect adds no rendering-library dependency.
 
 Design sources and implementation decisions are recorded in [DESIGN.md](../DESIGN.md). No paid template assets are included.

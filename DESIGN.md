@@ -6,7 +6,7 @@ An orbital observatory for software reliability, following the user's dark, lumi
 
 ## First viewport
 
-Centered wide headline, two clear actions, substantial negative space, and a blue-white particle sphere emerging from the lower frame. Navigation is quiet and sits on the same near-black surface. An amber satellite introduces the incident state. No fictional customer logos or metrics.
+An editorial headline beside the product invitation, followed by a luminous, full-width interactive particle sculpture. Spiral, cube, tree and orbit are four distinct shapes of the same particles. Click to reshape, drag to rotate, or choose a shape by keyboard. Navigation is quiet and sits on the same near-black surface. No fictional customer logos or metrics.
 
 ## Tokens
 
@@ -19,7 +19,9 @@ Centered wide headline, two clear actions, substantial negative space, and a blu
 
 ## Motion
 
-Original canvas constellation with orbit trails and cursor parallax. Lenis on landing only. GSAP scroll pin and stacking workflow. Motion layout transitions inside app, rapid spring response on controls. Reduce motion disables scroll smoothing, continuous motion, and animated transitions. Pointer effects do not obstruct clicks or keyboard navigation.
+Original GPU particle sculpture with an explicit shape selector, pointer response and pause control, with a Canvas fallback. The sculpture is the primary authored motion moment. Lenis on landing only. GSAP scroll pin and stacking workflow. Motion layout transitions inside app, rapid spring response on controls. Reduce motion disables scroll smoothing, continuous motion, and animated transitions. Pointer effects do not obstruct clicks or keyboard navigation.
+
+The first product section is a playable incident rehearsal: three scenarios, a scrubbable virtual timeline, service inspection, shareable scenario links and Markdown exercise exports. All of its values are explicitly illustrative and it never affects external services. The real workspace dependency map uses saved services and saved edges, and describes downstream reachability as potential impact, not proven causation.
 
 ## App
 

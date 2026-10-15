@@ -4051,6 +4051,76 @@ select:hover {
     grid-template-columns: 1fr 0.7fr 59px;
   }
 }
+.hero.hero-evolved {
+  min-height: 0;
+  padding-top: 54px;
+  overflow: clip;
+}
+.hero-evolved .hero-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
+  gap: 55px;
+  align-items: end;
+  text-align: left;
+}
+.hero-evolved h1 {
+  font-size: clamp(52px, 5.7vw, 82px);
+  line-height: 1.06;
+  font-weight: 470;
+  margin: 0;
+  max-width: 800px;
+  white-space: nowrap;
+}
+.hero-evolved h1 span { color: #a9bfd7; }
+.hero-invitation { padding-bottom: 4px; }
+.hero-invitation > p {
+  max-width: 370px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #b0bfd0;
+  margin-bottom: 23px;
+}
+.hero-evolved .hero-buttons { justify-content: flex-start; gap: 9px; flex-wrap: wrap; }
+.hero-evolved .hero-buttons .button { padding-inline: 15px; min-height: 44px; font-size: 11px; }
+.hero-stage {
+  position: relative;
+  height: clamp(540px, 62vh, 690px);
+  margin-top: 8px;
+  pointer-events: auto;
+}
+.hero-evolved .hero-bottom { position: relative; padding-top: 20px; padding-bottom: 27px; }
+.hero-evolved + .stack-strip { background: #0b131e; }
+.hero-evolved + .stack-strip > .wrap { min-height: 90px; }
+.platform .section-intro { margin-bottom: 45px; }
+.platform .capabilities { border-top: 1px solid #203043; padding-top: 48px; gap: 50px; }
+.platform .capabilities h3 { font-size: 19px; }
+.platform .capabilities p { font-size: 13px; }
+@media (max-width: 1120px) {
+  .hero-evolved .hero-copy { gap: 24px; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); }
+  .hero-evolved h1 { font-size: clamp(46px, 5.3vw, 68px); }
+  .hero-invitation > p { font-size: 13px; }
+  .hero-evolved .hero-buttons .button { padding-inline: 11px; font-size: 10px; }
+}
+@media (max-width: 850px) {
+  .hero.hero-evolved { padding-top: 45px; }
+  .hero-evolved .hero-copy { display: block; text-align: center; }
+  .hero-evolved h1 { font-size: clamp(42px, 7.5vw, 64px); margin-inline: auto; }
+  .hero-invitation > p { margin: 23px auto; max-width: 440px; font-size: 14px; }
+  .hero-evolved .hero-buttons { justify-content: center; }
+  .hero-evolved .hero-buttons .button { padding-inline: 18px; font-size: 12px; }
+  .hero-stage { width: 100%; height: 540px; margin-top: 6px; }
+  .hero-evolved .hero-bottom { padding-top: 12px; }
+}
+@media (max-width: 480px) {
+  .hero.hero-evolved { padding-top: 37px; }
+  .hero-evolved h1 { font-size: clamp(30px, 8.8vw, 43px); letter-spacing: -.035em; }
+  .hero-invitation > p { font-size: 13px; line-height: 1.7; max-width: 340px; margin: 20px auto; }
+  .hero-evolved .hero-buttons { gap: 8px; }
+  .hero-evolved .hero-buttons .button { padding-inline: 13px; font-size: 10px; }
+  .hero-stage { height: 460px; margin-top: 2px; }
+  .hero-evolved .hero-bottom { font-size: 8px; padding-top: 12px; padding-bottom: 21px; }
+  .platform .capabilities { padding-top: 30px; gap: 30px; }
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
