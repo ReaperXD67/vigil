@@ -5,12 +5,14 @@ import {
   ArrowUpRight,
   CheckCircle2,
   CircleAlert,
+  Copy,
   Loader2,
   RefreshCw,
 } from "lucide-react";
 import { Brand } from "./components/Brand";
 import { Badge, Empty } from "./components/UI";
 import { api, ago, type Service } from "./api";
+import "./components/StatusEmbed.css";
 type StatusData = {
   workspace_name: string;
   workspace_slug: string;
@@ -23,6 +25,18 @@ export default function PublicStatus() {
   const [data, setData] = useState<StatusData | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
+  const [copyState, setCopyState] = useState("");
+  const badgeUrl = `${window.location.origin}/api/public/status/${encodeURIComponent(slug || "")}/badge.svg`;
+  const statusUrl = `${window.location.origin}/status/${encodeURIComponent(slug || "")}`;
+  const markdown = `[![Service status](${badgeUrl})](${statusUrl})`;
+  const copyBadge = async () => {
+    try {
+      await navigator.clipboard.writeText(markdown);
+      setCopyState("Copied. Paste it into your README.");
+    } catch {
+      setCopyState("Select and copy the Markdown below.");
+    }
+  };
   const load = async () => {
     setLoading(true);
     try {
@@ -123,6 +137,22 @@ export default function PublicStatus() {
                 This page refreshes on request. Availability is calculated from
                 retained checks and is not an uptime guarantee.
               </p>
+              <section className="status-embed" aria-labelledby="status-embed-title">
+                <div className="status-embed-heading">
+                  <div>
+                    <h2 id="status-embed-title">Take your status with you.</h2>
+                    <p>A small live badge for your repository or documentation.</p>
+                  </div>
+                  <img src={badgeUrl} alt={data.is_demo ? "Vigil: sample data" : "Aggregate public service status"} height="28" />
+                </div>
+                <label htmlFor="badge-markdown">README Markdown</label>
+                <textarea id="badge-markdown" readOnly value={markdown} rows={3} spellCheck={false} onFocus={(event) => event.currentTarget.select()} />
+                <div className="status-embed-actions">
+                  <button className="button button-secondary" onClick={copyBadge}><Copy size={15} />Copy badge</button>
+                  <span role="status">{copyState}</span>
+                </div>
+                <p className="status-embed-note">Only shared services contribute. Stale checks never show a healthy badge. Image proxies may delay updates; open this page for details.</p>
+              </section>
             </>
           )
         )}

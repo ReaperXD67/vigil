@@ -1,6 +1,6 @@
 # Vigil infrastructure
 
-`ec2/` provisions the public demonstration host: a VPC, one subnet, internet gateway, web-only firewall, SSM instance role, encrypted root volume, EC2 and a stable Elastic IP. The host runs K3s with Traefik, Metrics Server and local storage. Terraform has no database password or Kubernetes credentials. Deploy the application separately through Helm.
+`ec2/` provisions the public demonstration host: a VPC, two public subnets, internet gateway, web-only firewall, SSM instance role, encrypted root volume, EC2 and a stable Elastic IP. The host runs K3s with Traefik, Metrics Server and local storage. Terraform has no database password or Kubernetes credentials. Deploy the application separately through Helm.
 
 `eks/` is a source reference with two public subnets, a managed EKS control plane, a real managed node group, EBS CSI with Pod Identity and Metrics Server. It deliberately uses no NAT Gateway. It is locally validated but **not deployed or authorized under the current Free-plan policy**. Its `enable_paid_eks` variable defaults to false and cannot override the deployment helper's account-plan check.
 
@@ -21,3 +21,5 @@ terraform -chdir=infra/eks init -backend=false
 terraform -chdir=infra/eks validate
 terraform fmt -check -recursive infra
 ```
+
+The EC2 VPC defines two public subnets in separate availability zones. One hosts the existing instance; the second reserves network space without adding compute, NAT or an IPv4 allocation. A plan adding the second subnet and route association must preserve the host/disk. Temporary Argo CD review uses [GitOps isolation](../gitops/README.md) and does not provision EKS.

@@ -65,6 +65,7 @@ Task: `{id,title,description,status,priority,incident_id,created_at,updated_at,i
 - `GET /activity?limit=20` → `[{id,type,message,created_at,is_sample}]`, newest first (maximum 100).
 - `GET /export` → `{schema_version,exported_at,user,services,dependencies,incidents,tasks,checks,activity}`. Only the authenticated workspace; no password or session secrets.
 - `GET /public/status/{workspace_slug}` → `{workspace_name,workspace_slug,is_demo,updated_at,services:[{id,name,description,status,last_checked,uptime,is_sample}]}`. Only services explicitly opted in via `is_public`; URLs/private data omitted. Unknown slug `404`.
+- `GET /public/status/{workspace_slug}/badge.svg` → an embeddable SVG of aggregate public status, without names, URLs, or private service data. Fresh outages/degradation take precedence; otherwise any missing or older-than-three-worker-interval check (minimum five minutes) reports `awaiting checks`. Demo badges always say `sample data`. Unknown/expired demo slug returns `404`. Responses cache for 60 seconds; external image proxies can delay updates.
 - `GET /health` and `GET /ready`: public liveness/readiness. Aliases at `/health` and `/ready`.
 - `GET /metrics`: minimal Prometheus operational counters, with `/metrics` alias. No user identifiers or service URLs.
 

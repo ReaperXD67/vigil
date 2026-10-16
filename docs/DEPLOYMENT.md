@@ -4,7 +4,7 @@ Vigil has a budget AWS host profile and an optional EKS profile. Infrastructure 
 
 ## Budget profile and credit boundary
 
-The default is one EC2 `t3.small`, a 20 GiB encrypted gp3 root volume and one stable public IPv4 address in `ap-south-1`. K3s provides Kubernetes, Traefik ingress, Metrics Server and local PVCs. PostgreSQL and the app run on that same host. No NAT Gateway, load balancer, RDS or EKS control plane is created. Monitoring is optional; a 4 GiB `c7i-flex.large` has more memory headroom but consumes credits faster. Neither size is free indefinitely.
+The default is one EC2 `t3.small`, a 20 GiB encrypted gp3 root volume and one stable public IPv4 address in `ap-south-1`. The VPC defines two public subnets in separate availability zones; only the first hosts compute. The second adds no EC2, NAT Gateway, or public IPv4 allocation. K3s provides Kubernetes, Traefik ingress, Metrics Server and local PVCs. PostgreSQL and the app run on that same host. No NAT Gateway, load balancer, RDS or EKS control plane is created. Monitoring is optional; a 4 GiB `c7i-flex.large` has more memory headroom but consumes credits faster. Neither size is free indefinitely.
 
 Before provisioning, verify the actual account plan, remaining credit, expiry, instance eligibility and current regional EC2 price. The new-account Free plan closes at six months or when credits run out; do not upgrade the account to bypass a rejected service. [AWS Free plan](https://docs.aws.amazon.com/en_en/awsaccountbilling/latest/aboutv2/free-tier-plans.html), [eligible EC2 instance types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html).
 
@@ -73,6 +73,10 @@ The third script argument is an optional ACME contact email. Omit it if no conta
 Application upgrades retain explicitly configured Helm values, including an enabled monitoring profile, while applying new chart defaults. The migration Job receives the same production environment/origin configuration as the API. Secret creation avoids the client-side apply annotation, so credentials are not duplicated into annotation text.
 
 Runtime environment uses `APP_ENV=production`, `ALLOWED_ORIGINS=https://<host>` and a secret `DATABASE_URL`. API replicas have background checks disabled to prevent duplicate scheduling. A separate single-replica worker enables checks for due non-demo services and uses a Recreate update strategy so two schedulers do not overlap during normal upgrades. Its Service is internal for metrics only. Cookie sessions are stored in PostgreSQL. Uvicorn trusts forwarded headers only from loopback and the explicit K3s/EKS private CIDRs; update `env.FORWARDED_ALLOW_IPS` if the cluster network changes.
+
+## Optional GitOps review
+
+The [isolated Argo CD workflow](../gitops/README.md) demonstrates a Git-driven promotion using this same app chart, a separate preview database and namespace-scoped permissions. It never adopts the public Helm release. The controller and preview are temporary and private; record actual Synced/Healthy evidence, then clean them up before the monitoring demonstration and return to the budget host.
 
 ## Optional observability
 

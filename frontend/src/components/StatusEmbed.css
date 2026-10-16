@@ -1,0 +1,15 @@
+.status-embed { margin-top: 48px; padding-top: 32px; border-top: 1px solid #273b52; }
+.status-embed-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.status-embed-heading h2 { font-size: 22px; font-weight: 500; letter-spacing: -.025em; }
+.status-embed-heading p { color: #a4b2c5; font-size: 13px; line-height: 1.7; margin-top: 8px; }
+.status-embed-heading img { flex-shrink: 0; }
+.status-embed label { display: block; font-size: 12px; color: #b8c9db; margin-bottom: 10px; }
+.status-embed textarea { display: block; width: 100%; resize: vertical; min-height: 94px; padding: 14px; background: #0d121b; border: 1px solid #324053; border-radius: 12px; color: #d2edff; font-family: monospace; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.status-embed-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 14px; }
+.status-embed-actions .button { min-height: 44px; }
+.status-embed-actions [role="status"] { color: #b8c9db; font-size: 12px; }
+.status-embed-note { font-size: 12px; color: #a4b2c5; line-height: 1.8; margin-top: 18px; max-width: 68ch; }
+@media (max-width: 560px) {
+  .status-embed-heading { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .status-embed-heading h2 { font-size: 20px; }
+}

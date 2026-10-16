@@ -1,0 +1,10 @@
+# Opt-in only for a bounded recording over a private SSM/loopback tunnel.
+# Never combine with a public Grafana Ingress or LoadBalancer.
+grafana:
+  grafana.ini:
+    auth:
+      disable_login_form: true
+    auth.anonymous:
+      enabled: true
+      org_role: Viewer
+      org_name: Main Org.

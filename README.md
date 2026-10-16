@@ -9,7 +9,9 @@ An open-source reliability workspace for developers who want service health, inc
 
 **[Try Vigil live](https://vigil.13-127-163-58.sslip.io)** · [Explore an isolated demo](https://vigil.13-127-163-58.sslip.io/app?demo=1) · [Deployment evidence](docs/VERIFICATION.md)
 
-![Vigil's animated constellation landing page](docs/assets/landing.png)
+[![Watch Vigil's particles reshape in the live app](demo/preview.gif)](https://vigil.13-127-163-58.sslip.io)
+
+*One sculpture, four forms. Click the preview to try the spiral, cube, tree, and orbit.*
 
 ## What works
 
@@ -19,7 +21,7 @@ An open-source reliability workspace for developers who want service health, inc
 - **Incident rehearsal:** explore three clearly labeled simulations, inspect affected services, play or scrub the timeline, share a scenario at an exact point, and export the exercise as Markdown. No external requests or real incidents are created.
 - **Recovery tasks:** a keyboard-accessible board, priority, incident links, editing, deletion, filtering, and completion.
 - **Private workspaces:** database-backed sessions, scrypt passwords, owner-scoped data, and a separate disposable demo for each visitor. Demo telemetry is clearly labeled and cannot trigger external probes.
-- **Public status pages:** explicitly opted-in services only. Endpoint URLs, private notes, tasks, and account details stay private.
+- **Public status pages and live README badges:** explicitly opted-in services only, with copyable Markdown. Badges mark sample data and stale checks explicitly. Endpoint URLs, private notes, tasks, and account details stay private.
 - **Portable data:** JSON workspace exports, a durable activity trail, and `Ctrl/Cmd+K` search.
 - **Interactive particle sculpture:** 10,400 GPU-rendered points morph between a spiral, cube, branching tree, and orbit. Click to reshape, drag to rotate, or use the keyboard. Responsive density, pause controls, reduced-motion support, and a Canvas2D fallback keep the experience accessible.
 
@@ -83,6 +85,7 @@ Browser checks also verified account registration/login, a real HTTPS probe, inc
 - [Operations guide](docs/OPERATIONS.md): backup/restore, rollout, monitoring, and isolated failure exercises.
 - [Helm guide](helm/README.md): PostgreSQL, migration gate, two API/frontend replicas, worker, probes, and HPA.
 - [Monitoring guide](monitoring/README.md): Prometheus/Grafana configuration and real metric queries.
+- [GitOps review](gitops/README.md): a private, temporary Argo CD controller for an isolated preview namespace, with promotion and cleanup commands. Production remains Helm-managed; live review evidence is recorded separately when executed.
 - [Requirement evidence](docs/REQUIREMENTS.md): original capstone requirements and verified versus unexecuted work.
 - [Contributing](docs/CONTRIBUTING.md) and [security boundaries](SECURITY.md).
 

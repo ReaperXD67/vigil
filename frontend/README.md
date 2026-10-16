@@ -1,6 +1,8 @@
 # Vigil web
 
-React + TypeScript + Vite interface for the Vigil Python API. Includes the cinematic landing page, isolated demo entry, sign-in/registration, service checks, a dependency map with potential blast radius analysis, incident timelines and Markdown postmortems, task board, activity, JSON export, command search (`Ctrl/Cmd+K`), and public status pages.
+React + TypeScript + Vite interface for the Vigil Python API. Includes the cinematic landing page, isolated demo entry, sign-in/registration, service checks, a dependency map with potential blast radius analysis, incident timelines and Markdown postmortems, task board, activity, JSON export, command search (`Ctrl/Cmd+K`), and public status pages with copyable README status badges.
+
+On a public status page, **Copy badge** provides linked Markdown for a repository or documentation. A selectable text field works when clipboard access is unavailable. Badges aggregate only opted-in services and label sample or stale data explicitly; image proxies may delay refreshes.
 
 ## Run
 

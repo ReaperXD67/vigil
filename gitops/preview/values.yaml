@@ -1,0 +1,20 @@
+# Promote only an image SHA whose complete CI pipeline passed.
+# The second Git commit in the recorded workflow updates these two tags.
+backend:
+  tag: 49b1aa3fc58f5327b3adc79d6760244c95435052
+  replicas: 1
+frontend:
+  tag: 49b1aa3fc58f5327b3adc79d6760244c95435052
+  replicas: 1
+worker:
+  enabled: false
+autoscaling:
+  enabled: false
+ingress:
+  enabled: false
+monitoring:
+  enabled: false
+env:
+  APP_ENV: production
+  CHECK_WORKER_ENABLED: "false"
+  ALLOWED_ORIGINS: https://vigil.13-127-163-58.sslip.io

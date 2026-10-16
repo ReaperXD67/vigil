@@ -23,6 +23,7 @@ from .probe import UnsafeTarget, probe
 from .schemas import DependencyCreate, IncidentCreate, IncidentPatch, Login, Register, ServiceCreate, ServicePatch, TaskCreate, TaskPatch, UpdateCreate
 from .security import COOKIE_NAME, auth_limit, create_session, current_user, durable_limit, limiter, password_hash, password_matches, token_hash
 from .seed import seed_demo
+from .status_badge import badge_state, render_badge
 
 logger = logging.getLogger("vigil")
 metrics_lock = threading.Lock()
@@ -186,7 +187,7 @@ async def boundary(request: Request, call_next):
         response = await enforce_boundary(request, call_next)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Cache-Control"] = "no-store"
+        response.headers.setdefault("Cache-Control", "no-store")
         if settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
         if response.status_code >= 500:
@@ -587,11 +588,27 @@ def export(user: User = Depends(current_user), db: Session = Depends(get_db)):
     return {"schema_version": 1, "exported_at": iso(now()), "user": user_json(user), "services": services(user, db), "dependencies": dependencies(user, db), "incidents": incidents(user, db), "tasks": tasks(user, db), "checks": [check_json(c) for c in db.scalars(select(Check).where(Check.owner_id == user.id).order_by(Check.checked_at))], "activity": [activity_json(a) for a in db.scalars(select(Activity).where(Activity.owner_id == user.id).order_by(Activity.created_at))]}
 
 
-@app.get("/api/public/status/{workspace_slug}")
-def public_status(workspace_slug: str, db: Session = Depends(get_db)):
+def public_workspace(workspace_slug: str, db: Session):
     user = db.scalar(select(User).where(User.workspace_slug == workspace_slug))
     if user is None or (user.is_demo and user.created_at.replace(tzinfo=now().tzinfo) < now() - timedelta(hours=settings.demo_hours)):
         raise HTTPException(404, "Status page not found.")
     public_services = db.scalars(select(Service).where(Service.owner_id == user.id, Service.is_public.is_(True)).order_by(Service.created_at)).all()
+    return user, public_services
+
+
+@app.get("/api/public/status/{workspace_slug}/badge.svg", response_class=Response)
+def public_status_badge(workspace_slug: str, db: Session = Depends(get_db)):
+    user, public_services = public_workspace(workspace_slug, db)
+    message, color = badge_state(public_services, is_demo=user.is_demo, current_time=now(), stale_after=max(300, settings.check_interval_seconds * 3))
+    return Response(render_badge(message, color), media_type="image/svg+xml", headers={
+        "Cache-Control": "public, max-age=60, must-revalidate",
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "X-Content-Type-Options": "nosniff",
+    })
+
+
+@app.get("/api/public/status/{workspace_slug}")
+def public_status(workspace_slug: str, db: Session = Depends(get_db)):
+    user, public_services = public_workspace(workspace_slug, db)
     fields = ("id", "name", "description", "status", "last_checked", "uptime", "is_sample")
     return {"workspace_name": user.name, "workspace_slug": user.workspace_slug, "is_demo": user.is_demo, "updated_at": iso(max((s.last_checked for s in public_services if s.last_checked), default=None)), "services": [{key: value for key, value in service_json(db, s).items() if key in fields} for s in public_services]}

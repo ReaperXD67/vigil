@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: vigil-preview
+  namespace: argocd
+spec:
+  description: Isolated Vigil GitOps promotion review; no production ownership
+  sourceRepos: [https://github.com/ReaperXD67/vigil.git]
+  destinations:
+    - namespace: vigil-preview
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - {group: "", kind: ConfigMap}
+    - {group: "", kind: Service}
+    - {group: apps, kind: Deployment}
+    - {group: batch, kind: Job}
+    - {group: policy, kind: PodDisruptionBudget}
+    - {group: networking.k8s.io, kind: NetworkPolicy}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vigil-preview
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: vigil-preview
+  source:
+    repoURL: https://github.com/ReaperXD67/vigil.git
+    targetRevision: main
+    path: helm/vigil
+    helm:
+      releaseName: vigil-preview
+      valueFiles: [../../gitops/preview/values.yaml]
+  destination:
+    namespace: vigil-preview
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    retry:
+      limit: 3
+      backoff: {duration: 5s, factor: 2, maxDuration: 1m}
+    syncOptions: [PruneLast=true, FailOnSharedResource=true]
