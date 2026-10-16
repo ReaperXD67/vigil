@@ -1,0 +1,23 @@
+2026-10-16T13:46:55Z
+# HELP vigil_http_requests_total Requests handled by this API process.
+# TYPE vigil_http_requests_total counter
+vigil_http_requests_total 97
+# TYPE vigil_http_errors_total counter
+vigil_http_errors_total 0
+# TYPE vigil_checks_total counter
+vigil_checks_total 0
+# TYPE vigil_process_uptime_seconds gauge
+vigil_process_uptime_seconds 323.8
+# TYPE vigil_http_request_duration_seconds histogram
+vigil_http_request_duration_seconds_bucket{le="0.01"} 89
+vigil_http_request_duration_seconds_bucket{le="0.05"} 96
+vigil_http_request_duration_seconds_bucket{le="0.1"} 96
+vigil_http_request_duration_seconds_bucket{le="0.25"} 96
+vigil_http_request_duration_seconds_bucket{le="0.5"} 96
+vigil_http_request_duration_seconds_bucket{le="1"} 96
+vigil_http_request_duration_seconds_bucket{le="2.5"} 96
+vigil_http_request_duration_seconds_bucket{le="5"} 96
+vigil_http_request_duration_seconds_bucket{le="10"} 96
+vigil_http_request_duration_seconds_bucket{le="+Inf"} 96
+vigil_http_request_duration_seconds_sum 0.467602
+vigil_http_request_duration_seconds_count 96

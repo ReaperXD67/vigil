@@ -1,0 +1,24 @@
+{
+  "presenter": "Aman Kumar",
+  "date": "16 October 2026",
+  "applicationRevision": "dbe40442fc324ea1393e121a65887ee697131619",
+  "ciRevision": "dbe40442fc324ea1393e121a65887ee697131619",
+  "ciRun": "38908236938",
+  "apiTests": 94,
+  "frontendTests": 24,
+  "guardTests": 10,
+  "monitoring": {
+    "image": "demo/evidence/grafana-live.png",
+    "caption": "Actual AWS capture / 16 October 2026.",
+    "status": "Recorded AWS exercise.\nPrivate monitoring stack.",
+    "metricList": "Healthy API targets\nRequest rate and p95 latency\nHTTP 5xx ratio",
+    "narrative": "The fresh AWS capture on 16 October 2026 shows two healthy API targets, populated request-rate and p95-latency charts, and an HTTP 5xx ratio with a corrected 0 to 100 percent scale. Prometheus separately reported both API targets and the worker target UP with no scrape errors. The recorded query at 13:46:23 UTC returned approximately 0.413 requests per second and 9.61 milliseconds p95 latency; these are point-in-time demonstration observations, not performance guarantees. Dashboard configuration also includes checks, replica counts, and pod memory. Grafana used the corrected 512 MiB memory limit. Monitoring ran as a bounded private exercise on temporary capacity, accessible through an SSM tunnel. Continuous Grafana hosting is not promised.",
+    "evidence": "https://github.com/ReaperXD67/vigil/blob/main/demo/evidence/grafana-live.png",
+    "queryEvidence": "https://github.com/ReaperXD67/vigil/blob/main/demo/evidence/monitoring-live.json"
+  },
+  "argoStatus": "verified",
+  "argoApplication": "vigil-preview",
+  "argoRevision": "33f8e1f4e01e68a52922dcf4fd6f3e77edfe47af",
+  "argoEvidence": "https://github.com/ReaperXD67/vigil/blob/main/demo/evidence/argocd-promoted.png",
+  "argoNotes": "Argo CD reconciled a real Git promotion in an isolated preview namespace. The baseline Git revision dbe40442 used application images 49b1aa3. Commit 33f8e1f4e01e68a52922dcf4fd6f3e77edfe47af promoted both application images to the CI-verified dbe40442fc324ea1393e121a65887ee697131619. Automatic sync ran from 13:37:27 to 13:37:42 UTC on 16 October 2026 and finished Synced, Healthy, and Succeeded. No manual Helm deployment or manual sync performed the promotion. One API and one frontend replica became ready, with Alembic revision c5f6d1a2b390. The preview used an isolated database and did not change production's Helm ownership. Git revision and application-image revision are different identifiers."
+}

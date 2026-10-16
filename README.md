@@ -9,6 +9,8 @@ An open-source reliability workspace for developers who want service health, inc
 
 **[Try Vigil live](https://vigil.13-127-163-58.sslip.io)** · [Explore an isolated demo](https://vigil.13-127-163-58.sslip.io/app?demo=1) · [Deployment evidence](docs/VERIFICATION.md)
 
+**[Watch the walkthrough](https://github.com/ReaperXD67/vigil/releases/download/v1.1.0/vigil-walkthrough.mp4)** · [PowerPoint](demo/presentation.pptx) · [PDF](demo/slides.pdf) · [Submission package](demo/)
+
 [![Watch Vigil's particles reshape in the live app](demo/preview.gif)](https://vigil.13-127-163-58.sslip.io)
 
 *One sculpture, four forms. Click the preview to try the spiral, cube, tree, and orbit.*
@@ -67,17 +69,27 @@ flowchart LR
 
 The API exposes `/health`, DB-aware `/ready`, Prometheus `/metrics`, Swagger `/docs`, and resource routes under `/api`. The production edge restricts metrics to the internal monitoring path. See the [API contract](backend/API.md).
 
+| Layer | Stack |
+| --- | --- |
+| Product | Python / FastAPI, SQLAlchemy, Alembic, PostgreSQL |
+| Interface | React, TypeScript, Vite, original WebGL, Motion, GSAP, Lenis |
+| Delivery | Docker, GitHub Actions, Trivy, GHCR, Terraform, Helm |
+| Runtime | AWS EC2, K3s, Traefik, cert-manager; isolated Argo CD review |
+| Observability | Prometheus metrics, optional kube-prometheus-stack / Grafana |
+
 ## Engineering and verification
 
 GitHub Actions runs Python tests, frontend type-check/build/tests, PostgreSQL migration/rollback checks, nonroot container builds, and a real Compose persistence smoke test. Both images must pass Trivy with **zero HIGH or CRITICAL findings** before SHA-tagged images are published to GHCR. Early incremental commits may fail while implementation is in progress; use the current commit’s run as evidence.
 
-Verified in [CI run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985): **86 backend tests, 24 frontend tests, 10 spending-guard tests**, production builds, all three PostgreSQL migrations and rollback/reapplication, nonroot containers, and session/task/dependency persistence across a backend restart. Both images passed the strict security gate and are publicly pullable from GHCR at the complete SHA for revision `5af1c16`. The frontend suite includes API-client behavior, dependency traversal, and particle geometry/projection tests. See the [exact image tags and delivery record](docs/VERIFICATION.md).
+Verified in [CI run 38908236938](https://github.com/ReaperXD67/vigil/actions/runs/38908236938): **94 backend tests, 24 frontend tests, 10 spending-guard tests**, production builds, all three PostgreSQL migrations and rollback/reapplication, nonroot containers, and session/task/dependency persistence across a backend restart. Both images passed the strict security gate and are publicly pullable from GHCR at the complete SHA for revision `dbe4044`. Badge tests cover privacy, freshness, demo labeling, and expiry; the frontend suite covers API behavior, graph traversal, and particle geometry. See the [exact image tags and delivery record](docs/VERIFICATION.md).
+
+Local Docker Compose also passed: all three services healthy, nonroot app containers, PostgreSQL migrations applied, and the app loaded at `localhost:3000`. [Command evidence](demo/evidence/compose-verification.txt) · [Browser capture](demo/evidence/compose-localhost.png).
 
 Browser checks also verified account registration/login, a real HTTPS probe, incident resolution and postmortem download, task movement, command search, JSON export, and public-status privacy. Desktop and mobile interfaces were inspected. Terraform validation and Helm/schema checks passed locally. See the [verification record](docs/VERIFICATION.md) for evidence and limits.
 
 ![Vigil workspace with clearly labeled demonstration data](docs/assets/workspace.png)
 
-**Hosting:** release `5af1c16` runs over public HTTPS on AWS EC2/K3s, using a `t3.small` host, PostgreSQL, two API replicas, two frontend replicas, and a scheduled worker. Six consecutive readiness checks passed after the final host restart; the existing browser session and dependency data survived. Live operations checks also exercised database restoration, isolated deployment failures, and HPA scaling **2 → 3 → 4 → 2**. Prometheus/Grafana were verified during a bounded exercise and then removed. See the [dated evidence and current revision](docs/VERIFICATION.md).
+**Hosting:** application revision `dbe4044` runs over public HTTPS on AWS EC2/K3s, Helm revision **10**, using a `t3.small` host, PostgreSQL, an autoscaled API with a two-replica minimum, two frontend replicas, and a scheduled worker. Six consecutive public readiness checks passed after returning from temporary recording capacity. Earlier live operations checks also exercised database restoration, isolated deployment failures, and HPA scaling **2 → 3 → 4 → 2**. The recorded Argo CD and Prometheus/Grafana review environments, their temporary data and access tunnels have been removed. See the [dated evidence and current revision](docs/VERIFICATION.md).
 
 ## Deploy and operate
 
@@ -85,7 +97,7 @@ Browser checks also verified account registration/login, a real HTTPS probe, inc
 - [Operations guide](docs/OPERATIONS.md): backup/restore, rollout, monitoring, and isolated failure exercises.
 - [Helm guide](helm/README.md): PostgreSQL, migration gate, two API/frontend replicas, worker, probes, and HPA.
 - [Monitoring guide](monitoring/README.md): Prometheus/Grafana configuration and real metric queries.
-- [GitOps review](gitops/README.md): a private, temporary Argo CD controller for an isolated preview namespace, with promotion and cleanup commands. Production remains Helm-managed; live review evidence is recorded separately when executed.
+- [GitOps review](gitops/README.md): a private Argo CD controller reconciled an isolated preview to **Synced / Healthy** after a real Git promotion. [Captured result](demo/evidence/argocd-promoted.png) · [Exact revisions](demo/evidence/gitops-promoted.txt). Production remains Helm-managed.
 - [Requirement evidence](docs/REQUIREMENTS.md): original capstone requirements and verified versus unexecuted work.
 - [Contributing](docs/CONTRIBUTING.md) and [security boundaries](SECURITY.md).
 

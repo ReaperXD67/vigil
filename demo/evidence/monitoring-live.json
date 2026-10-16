@@ -1,0 +1,72 @@
+{
+  "captured_at": "2026-10-16T13:46:23.593123+00:00",
+  "application_targets": [
+    {
+      "job": "vigil-worker",
+      "health": "up",
+      "last_error": ""
+    },
+    {
+      "job": "vigil-backend",
+      "health": "up",
+      "last_error": ""
+    },
+    {
+      "job": "vigil-backend",
+      "health": "up",
+      "last_error": ""
+    }
+  ],
+  "api_targets_up": [
+    "2"
+  ],
+  "requests_per_second": [
+    "0.4125554008220852"
+  ],
+  "p95_seconds": [
+    "0.009605585226927069"
+  ],
+  "dashboard_title": "Vigil / operations",
+  "panels": [
+    {
+      "title": "Healthy API targets",
+      "unit": "short",
+      "max": null
+    },
+    {
+      "title": "API requests / second",
+      "unit": "reqps",
+      "max": null
+    },
+    {
+      "title": "HTTP 5xx ratio",
+      "unit": "percentunit",
+      "max": 1
+    },
+    {
+      "title": "API p95 latency",
+      "unit": "s",
+      "max": null
+    },
+    {
+      "title": "Service checks / minute",
+      "unit": "short",
+      "max": null
+    },
+    {
+      "title": "Ready API replicas",
+      "unit": "short",
+      "max": null
+    },
+    {
+      "title": "Backend memory / Pod",
+      "unit": "bytes",
+      "max": null
+    },
+    {
+      "title": "Desired / current API replicas",
+      "unit": "short",
+      "max": null
+    }
+  ]
+}

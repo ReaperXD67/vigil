@@ -1,135 +1,93 @@
 # Delivery verification
 
-**Date:** 15 October 2026. This record separates exact CI revisions, local browser checks, and observed AWS operations. The [main README](../README.md) carries the current public URL and deployed revision.
+**Updated: 16 October 2026.** This record separates automated checks, real browser workflows, live AWS operations and remaining submission gaps. The [main README](../README.md) carries the public URL and current delivery summary.
 
-**Live release:** revision `5af1c163474b4b14266aa639581797778bf7b106` is deployed as Helm revision 7 with dependency migration `c5f6d1a2b390`. Its [CI run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985), public API checks, production browser workflows, and post-downsize stability checks passed. The final host is **t3.small (2 GiB)**; temporary recovery/monitoring capacity and tunnels have been removed.
+The public release at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-58.sslip.io) runs **`dbe40442fc324ea1393e121a65887ee697131619`**, Helm revision **10**, with database revision **`c5f6d1a2b390`**. The final host is **t3.small (2 GiB)**. The temporary GitOps and monitoring installations have been removed after recording their real behavior. This is a single-host EC2/K3s deployment under an active AWS Free account plan; EKS has not been provisioned.
 
-The source repository is public and exceeds the assignment's ten-commit requirement. Its [captured history](assets/github-history.png) shows 11 meaningful commits through `9370cf8`; the [current history](https://github.com/ReaperXD67/vigil/commits/main/) includes subsequent security, deployment, and dependency-map work. EKS has not been provisioned: the public product uses K3s on a single EC2 host within an active AWS Free account plan.
+## Automated checks and published images
 
-## Automated application and runtime checks
+[CI run 38908236938](https://github.com/ReaperXD67/vigil/actions/runs/38908236938) passed all four jobs for the exact deployed application revision. Publication followed the application tests, complete-stack checks and both strict container scans.
 
 | Check | Observed result |
 | --- | --- |
-| Python API suite | **86 tests passed** using isolated test databases, including graph ownership, cycles, concurrent opposite inserts, cascade deletion, capacity, and public privacy |
-| Frontend | Production TypeScript/Vite build and **24 tests passed**: seven API-client/session/error-handling cases, six dependency-graph cases, eleven particle geometry/projection cases |
-| Spending guard | **10 offline tests passed**: active Free plan and positive finite USD credit required for provisioning; paid, expired, unknown, empty-credit, and malformed balances denied; cleanup remains available |
-| PostgreSQL | All three Alembic migrations applied to a fresh database; authenticated task CRUD, dependency create/read, cycle rejection, deletion cascade, readiness and metrics passed; rollback to base and reapplication passed |
-| Container build | Backend and multistage frontend images built successfully |
-| Compose runtime | PostgreSQL, backend and frontend started with healthy dependency ordering on the Linux CI runner |
-| Nonroot execution | Runtime user IDs for both application containers verified to be nonzero |
-| Frontend-to-API integration | Real Nginx proxy, demo session, service listing, task CRUD, export, metrics and logout passed |
-| Persistence | Backend container restarted; the existing session, updated task, and dependency survived and remained accessible. The persisted edge appeared in JSON export and disappeared when its service was deleted |
+| Python API suite | **94 tests passed**, including authentication, tenant isolation, dependency cycles/concurrency, public privacy and status badges |
+| Frontend | Production TypeScript/Vite build and **24 tests passed**, covering the API client, dependency graph and particle geometry |
+| AWS spending guard | **10 offline tests passed**; provisioning requires an active Free plan and positive finite USD credits; paid, expired, unknown and malformed balances fail closed |
+| PostgreSQL migrations | All three migrations applied; readiness, authenticated CRUD, dependencies, cycle rejection and deletion cascade passed; rollback to base and reapplication passed |
+| Compose integration in CI | Actual Nginx/API/PostgreSQL services passed demo login, service/task workflows, export, metrics and logout |
+| Persistence | Existing session, updated task and dependency survived a backend container restart; the persisted edge appeared in JSON export and disappeared after service deletion |
+| Nonroot containers | Both application containers ran with nonzero user IDs |
+| Image security | Trivy v0.76.0 reported **zero HIGH or CRITICAL findings** for both published images using that run's vulnerability database; unfixed findings are included and no exclusions weaken the gate |
 
-The verified application/recovery revision is `5af1c163474b4b14266aa639581797778bf7b106`, [run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985). All four jobs passed, including complete-stack persistence and both strict container scans. SQLite upgrade → schema-drift check → downgrade to base → upgrade passed locally for the dependency migration. Existing service data survived the local upgrade, and `/ready` now checks the dependency table.
+The total is **128 tests**: 94 API, 24 frontend and 10 spending-guard cases. The [API report excerpt](../demo/evidence/api-test-excerpts.txt) records the JUnit result. The [Compose smoke check](../.github/scripts/compose-smoke.py) runs against the same images subsequently scanned and published. The scan result is a point-in-time gate, not a guarantee of no vulnerabilities. Lower severities remain outside this gate. Reports are retained in the linked run's `container-security-reports` artifact and [submission excerpts](../demo/evidence/ci-check-excerpts.txt).
 
-The reusable runtime check is [compose-smoke.py](../.github/scripts/compose-smoke.py). CI starts the exact images that are subsequently scanned and published. PostgreSQL and its volume are disposed of after the test. Local Docker Desktop encountered a host startup failure, so this record does not claim that the local desktop Compose runtime passed.
-
-## Container security and publishing
-
-The application/recovery [run 38741659985](https://github.com/ReaperXD67/vigil/actions/runs/38741659985) passed all four jobs and published both images. Trivy **v0.76.0** scanned operating-system packages and Python runtime dependencies. Both images had **zero HIGH or CRITICAL findings** with the scan database available during that run. The gate includes unfixed vulnerabilities, uses exit code 1 on findings, and contains no vulnerability exclusions. Findings at lower severities are outside this gate; this result is not a guarantee that the images contain no vulnerabilities.
-
-An earlier run correctly blocked publication after finding 44 HIGH findings in the Debian runtime. The backend was changed to the official Python 3.12.15 Alpine runtime, updated its OS packages, retained CA certificates, and installed the pinned Python dependencies from compatible wheels. The new backend and frontend scans passed without weakening the policy. The actual reports are downloadable as the `container-security-reports` artifact in the linked successful run.
-
-Published images:
-
-```text
-ghcr.io/reaperxd67/vigil-backend:5af1c163474b4b14266aa639581797778bf7b106
-ghcr.io/reaperxd67/vigil-frontend:5af1c163474b4b14266aa639581797778bf7b106
-```
-
-Both tags were checked independently through anonymous registry authentication and manifest requests, which returned HTTP 200. Their public availability does not depend on a developer's local GitHub credentials. Publication occurred only after tests, runtime checks, and both scans passed.
-
-| Image at `5af1c163474b4b14266aa639581797778bf7b106` | Verified manifest digest |
+| Public image tag | Verified manifest digest |
 | --- | --- |
-| `ghcr.io/reaperxd67/vigil-backend` | `sha256:5cbe7d426ab16c0afff1df821249bef9abff8e7d00486a469262a23745a853d3` |
-| `ghcr.io/reaperxd67/vigil-frontend` | `sha256:23b80189de104f1ce097c26e9ab080c9cbd5559a8c93a86a12e79cb25f8ff3bb` |
+| `ghcr.io/reaperxd67/vigil-backend:dbe40442fc324ea1393e121a65887ee697131619` | `sha256:6f2e8883002a0a875085312993ff70a01839820dd70aa1a68c01cf637af15cc8` |
+| `ghcr.io/reaperxd67/vigil-frontend:dbe40442fc324ea1393e121a65887ee697131619` | `sha256:0ee2062e60bff38f02d3c5af5c7a5ab5407ac1162cf8611aab9e751b9bfbc9eb` |
 
-## Browser verification
+Anonymous registry manifest requests returned HTTP 200 for both images. Their public availability does not depend on local GitHub credentials. The [recorded CI screenshots](../demo/evidence/ci-complete.png) and [captured run data](../demo/evidence/ci-complete.json) identify the actual workflow.
 
-The connected local frontend/backend was exercised through the browser during this milestone:
+## Local Compose and browser verification
 
-- Registered a workspace, signed in, and confirmed session persistence after reload.
-- Created a service and performed a real HTTPS check of `https://example.com`; the observed response was **HTTP 200 in 422 ms**. This is one measurement, not an uptime or latency guarantee.
-- Opened an isolated demo, created a service, moved a recovery task, resolved an incident, and generated its structured postmortem.
-- Downloaded workspace JSON, used command search, and checked public status-page privacy so private service information was not exposed.
-- Reviewed desktop and mobile layouts. Seeded demo measurements and incidents were visibly labelled as sample data.
-- Checked a 320 px viewport: document width remained 320 px with no horizontal overflow. Reduced-motion mode produced no JavaScript errors; Motion's expected reduced-motion warning was observed.
-- Opened the dependency view at mobile width, added Authentication → Dashboard through the dialog, and reloaded to confirm four persisted edges. The selected service correctly changed from one direct/two indirect dependents to two direct/one indirect dependent. Confirmed removal deleted the added edge after reload. Independent live requests through the Vite proxy verified the new demo chain, cycle rejection, JSON export, private/public separation, and cascade deletion.
-- Verified the nested `/app/topology?demo=1` entry opens the requested route after demo creation. The interactive incident lab's shared URL restored its selected scenario and time; play advanced, pause stopped, the end state resolved, and its Markdown download contained all five phases. These lab events are explicit simulations, not real incidents. The 390 px mobile document stayed 390 px wide.
-- Verified the recovery revision locally by blocking an actual lazy-loaded route chunk and separately triggering a render exception. The route error boundary showed recovery controls instead of leaving a blank page. The production frontend build passed after the change.
+Local Docker Desktop/WSL Compose verification succeeded on **16 October**, replacing the earlier host-startup limitation. `docker compose up --build -d --wait` returned zero with all three services healthy. The frontend was available at localhost:3000; the API used localhost:8001 for this check to preserve an existing development process on 8000. Both containers were nonroot, and PostgreSQL contained 12 tables including `alembic_version`. See the [actual command transcript](../demo/evidence/compose-verification.txt) and [local browser capture](../demo/evidence/compose-localhost.png).
 
-The final local visual build passed with **24 frontend tests**: seven API-client/session/error-handling cases, six dependency-graph cases, and eleven particle geometry/projection cases. API-client tests verify cookie preservation, authentication failure status, readable validation errors, safe HTML gateway errors, and correct create/edit/delete requests. Geometry tests cover all shapes, mobile/desktop aspect ratios, extreme rotations, morph overshoot, and clearance around controls.
+Browser and API checks across the delivered revisions exercised:
 
-Browser inspection confirmed the WebGL path with **10,400 points on desktop** and **7,200 points on mobile** after a shader-link fix. Enter and arrow-key controls, pause, reduced-motion behavior, and the tree shape were exercised. The 390 px mobile document had no horizontal overflow; the final 320 px check also kept all controls visible and document width at 320 px. The final visual revision's complete CI run also passed all 24 frontend tests.
+- Registration, sign-in, session persistence, service creation, task changes, incident updates through resolution, structured postmortems and JSON export.
+- A real HTTPS probe of `https://example.com`, cross-workspace `404`, private-service status-page privacy, and external-probe rejection for demo accounts. Verification services/tasks/incidents were deleted and sessions logged out. An empty generated registered account remains because account deletion is not implemented.
+- Dependency creation/deletion persisting after reload, cycle rejection, cascade deletion and correct direct/indirect downstream impact. Existing workspaces are not backfilled with invented dependencies; only newly created demos receive the sample chain.
+- The nested `/app/topology?demo=1` entry, shared incident-lab scenario/time, playback/pause and Markdown export. Lab events and demo measurements are visibly labeled simulations/sample data.
+- The actual WebGL path with 10,400 points on desktop and 7,200 on mobile; shape, keyboard, pause and reduced-motion controls. The 390 px and 320 px document widths stayed within their viewports.
+- Recovery from a blocked route chunk and an induced render exception through the route error boundary.
+- On the **current public release**, the status badge returned HTTP 200 with SVG content and a 60-second cache header; its copy action worked without browser console errors. The [public badge capture](../demo/evidence/status-badge-live.png) records the feature.
 
-These browser and local checks describe the delivery working tree; the separately linked CI run identifies its exact tested commit. Potential impact follows declared connections, not measured causality. Existing workspaces are not backfilled with invented dependencies; only newly created demos receive the sample chain.
+The 15 October public API check measured one successful example.com response at 93.2 ms. That observation is not an uptime or performance guarantee. Potential dependency impact follows user-declared connections, not measured causality. [Production interface](../demo/evidence/product-live.png), [dependency view](assets/dependencies-live.png), and [local mobile view](assets/mobile.png) are evidence of different checks and should not be treated as synthetic monitoring of the platform itself.
 
-The screenshots below document the local interface, not a publicly hosted deployment. They contain illustrative demo data.
+## Actual infrastructure and production operations
 
-### Landing page
+The EC2 Terraform root owns a VPC, two public subnets in separate availability zones, routing, the single host, encrypted gp3 storage, IAM for SSM and one stable public address. Only the first subnet contains compute. On 16 October the reviewed nonempty plan added the second subnet and route association, and temporarily resized the existing host in place: **2 added, 1 changed, 0 destroyed**. The [sanitized plan](../demo/evidence/terraform-plan.txt) and [actual AWS VPC console](../demo/evidence/aws-vpc-console.jpg) document this EC2 root. No NAT Gateway, load balancer, RDS, EKS or paid-plan enrollment was created.
 
-![Desktop Vigil landing page with animated service constellation](assets/landing.png)
+The Free-plan guard passed before remote deployment and capacity changes. It checks the actual account plan/status and positive finite credits; it does not upgrade the account. AWS Free-plan protection is time/credit limited, so continued availability is not perpetual. The cost estimate and account-policy boundaries are in [DEPLOYMENT.md](DEPLOYMENT.md).
 
-### Workspace
+The new application was deployed only after its exact CI revision passed. A PostgreSQL backup preceded the upgrade, the Alembic migration hook completed, and the frontend/backend/worker used the immutable published image tags. The frontend uses `Recreate` to prevent mixed-version asset responses; the two API replicas use a zero-surge rolling update to reduce peak memory on the budget host. A bounded frontend interruption is possible during upgrades.
 
-![Vigil workspace showing clearly labelled sample services, incidents and recovery tasks](assets/workspace.png)
+The reviewed return plan changed only the instance type in place: **0 added, 1 changed, 0 destroyed**. AWS confirmed `t3.small`, running, the same public address and required IMDSv2. Six control-plane `/readyz` and public HTTPS `/ready` checks passed from **13:52:59 to 13:54:43 UTC on 16 October**; database readiness remained `ok`. Available memory ranged **423–461 MiB**. No restart counters increased during the window; existing counters include the controlled host reboots/startup. Frontend **2/2** and worker **1/1** remained ready. The HPA temporarily retained **3 healthy API replicas** after startup load, with **3–4% CPU / 75% target**, within its configured 2–4 range and normal downscale window.
 
-### Mobile
+At **13:57:55 UTC**, the HPA had returned naturally **3 → 2**, reporting “All metrics below target.” The final snapshot confirmed backend **2/2**, frontend **2/2**, worker **1/1**, public/control-plane readiness, **517 MiB** available memory and Helm revision **10**, with unchanged restart counters. The [fresh Kubernetes transcript](../demo/evidence/kubernetes.txt) captures this post-upgrade budget-host state. Only the production/system namespaces remain; the review namespaces and both Argo/monitoring CRD groups are absent. All temporary SSM forwarding processes exited. The Free/Active positive-credit guard passed again after return; no account upgrade occurred. A final Terraform plan reported **no changes** with exit code 0, and T3 CPU credits remained `standard`.
 
-![Vigil landing page at mobile width](assets/mobile.png)
+Production remains a single failure domain. Same-host backups are retained on encrypted EBS but are not an off-host disaster-recovery strategy. Earlier verification restored a checksum-verified baseline backup into a separate disposable database and removed that database afterward; production was not replaced. Scheduled off-host backups are not configured.
 
-### Interactive particle tree
+On 15 October, a bounded CPU exercise observed API HPA scale **2 → 3 → 4** and then return naturally **4 → 2**, enforcing the configured maximum. Broken-image and wrong-Service-selector exercises recovered inside an isolated temporary namespace, which was removed. These are observed demonstrations, not a claim of multi-node resilience or an exhaustive failure test.
 
-![Original WebGL particle tree with shape and playback controls](assets/particle-tree.png)
+## Recorded GitOps reconciliation
 
-### Dependency analysis
+The temporary Argo CD installation used chart **10.10.5**, application **v3.5.5**, and the existing `helm/vigil` chart in the isolated `vigil-preview` namespace. Its project and namespace-scoped permissions excluded production, RBAC changes and Secret reads. Actual permission checks returned no production Deployment access, allowed preview Deployment updates and no preview Secret reads. The preview enforced Restricted Pod Security and used a separate disposable PostgreSQL database. All UI access used a private SSM tunnel; no public Argo ingress or administrator session was exposed.
 
-![Private service dependency map and potential downstream impact](assets/dependencies.png)
+The recording first captured **Synced / Healthy** at Git revision `dbe40442`. A subsequent [Git promotion `33f8e1f4e01e68a52922dcf4fd6f3e77edfe47af`](https://github.com/ReaperXD67/vigil/commit/33f8e1f4e01e68a52922dcf4fd6f3e77edfe47af) changed both preview image tags from the earlier baseline to tested application revision `dbe40442fc324ea1393e121a65887ee697131619`. Argo automatically reconciled from **13:37:27 to 13:37:42 UTC**, ran the migration, and finished **Synced / Healthy / Succeeded** with the new images. No manual sync or Helm application upgrade performed that promotion.
 
-### Incident lab
+See the [actual promotion transcript](../demo/evidence/gitops-promoted.txt), [baseline capture](../demo/evidence/argocd-baseline.png), [promoted capture](../demo/evidence/argocd-promoted.png) and [reproduction guide](../gitops/README.md). After capture, the Application, controller, preview namespace/database/PVC, owned empty Argo CRDs and tunnel were removed. **Production remains Helm-managed; continuous production Argo reconciliation is not claimed.**
 
-![Clearly labeled incident simulation with timeline playback](assets/incident-lab.png)
+## Fresh Prometheus and Grafana evidence
 
-## AWS runtime evidence
+On **16 October**, after the GitOps review was removed, the optional `kube-prometheus-stack` **92.7.0** and Grafana **13.2.4** were installed on temporary 4 GiB capacity. The actual Prometheus Targets page showed **all three application targets UP**: two API replicas and the singleton worker. The eight-panel **Vigil / operations** dashboard showed two healthy API targets and real request/latency series.
 
-The current public release at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-58.sslip.io) is **`5af1c163474b4b14266aa639581797778bf7b106`**, Helm revision **7**, database revision **`c5f6d1a2b390`**. Final release checks passed:
+At 13:46:23 UTC, API queries observed approximately **0.413 requests/s** and **0.00961 s p95**. These short-window observations are not performance guarantees. At 13:46:55 UTC, a direct internal `/metrics` request returned actual counters and histogram values, including 97 requests, zero HTTP 5xx responses and 96 latency observations for the sampled API process. Metrics stay private; public `/metrics` routes are not exposed.
 
-- Public TLS liveness and database readiness both returned `200`.
-- Registered and signed in through the public API with Secure/HttpOnly session cookies. A real `https://example.com` check returned **HTTP 200 in 93.2 ms**; this is one measurement, not a latency guarantee.
-- Created, read, exported, and deleted a dependency; a reverse connection correctly returned cycle conflict `409`. Incident updates progressed identified → monitoring → resolved; the postmortem and linked recovery task reflected the recorded workflow.
-- Verified private-service status-page privacy, cross-workspace `404`, three clearly labeled demo dependencies, and demo external-probe rejection `403`. Verification tasks, incidents, dependencies, and services were removed and sessions logged out. The generated empty registered account remains because account deletion is not implemented.
-- Production browser checks exercised the actual WebGL tree, a shared queue scenario at time 45, and the nested **Map your own services** entry. A new demo opened `/app/topology` with three edges. Adding Authentication → Dashboard survived reload with four edges and the correct two-direct/one-indirect impact; removing it and reloading restored three edges. No new console errors appeared beyond the expected anonymous-authentication `401`.
-- After return to t3.small, the existing browser session survived the host restart. Its three original dependencies persisted, the deleted Authentication → Dashboard connection stayed deleted, and the reloaded landing page rendered the actual WebGL cube.
+![Fresh populated Grafana dashboard on the actual AWS review deployment](../demo/evidence/grafana-live.png)
 
-The full API/initial browser checks ran on the temporary 4 GiB recovery host, followed by browser persistence checks and a bounded stability check on the final **t3.small (2 GiB)** host. Six Kubernetes `/readyz` and public HTTPS `/ready` checks all passed from **13:27:57 to 13:29:39 UTC on 15 October 2026**. Available memory ranged **543–569 MiB**; backend **2/2**, frontend **2/2**, and worker **1/1** stayed ready throughout. HPA held **2 replicas** at observed **4% CPU / 75% target**. Restart counts did not increase across these final diagnostics; previously recorded restarts followed controlled host reboots/startup.
+The [fresh Targets capture](../demo/evidence/prometheus-targets.png) and [query/target data](../demo/evidence/monitoring-live.json) support this recording. This live run verifies Grafana's corrected **512 MiB** limit, the 0–1 error ratio displayed as 0–100%, and the numeric checks-per-minute unit. It supersedes the older 15 October screenshot's incorrect axis formatting. Monitoring pods had zero restarts at capture.
 
-The final host retains the same public IP, requires IMDSv2, and uses T3 `standard` CPU credits. No 4 GiB capacity, optional Prometheus/Grafana release, unused monitoring CRDs, or SSM tunnel remains. No runtime garbage-collector tuning was needed. AWS Free-plan checks passed before the deployment/resizing operations; no account upgrade or EKS provisioning occurred.
+After recording, monitoring was disabled in production Helm revision 10; the monitoring release/namespace, temporary anonymous Viewer access, both private tunnels and all ten empty owned monitoring CRDs were removed. The application continues to export internal metrics and its HPA uses Kubernetes Metrics Server. **Continuous Prometheus/Grafana hosting is not claimed.**
 
-![Production Vigil dependency map at the public HTTPS host, showing clearly labeled demo services and potential downstream impact](assets/dependencies-live.png)
+## Scope limits and reproducibility
 
-This production capture comes from the verified public `5af1c16` release. The service graph is deliberately labeled sample data; it is evidence of the hosted workflow, not the application's own infrastructure topology.
+The [local infrastructure validation record](../infra/validation.txt) covers both Terraform roots, Helm lint/render, standard Kubernetes schemas, monitoring/Argo rendering and script syntax. Custom resource schema validation is explicitly identified where skipped. Installers reject unowned existing review namespaces/CRDs instead of adopting them; cleanup checks ownership and refuses deletion while unrelated CRD instances remain.
 
-The earlier public baseline at [vigil.13-127-163-58.sslip.io](https://vigil.13-127-163-58.sslip.io) ran revision `29a6eca958bb42e20daad70d1bd90256630b8449` on K3s `v1.37.1+k3s1`, deployed with Helm `3.22.0` and cert-manager `1.21.2`. Observed results at that checkpoint:
+The source repository is public and exceeds ten meaningful commits; the [current history](https://github.com/ReaperXD67/vigil/commits/main/) and [submission artifacts](../demo/SUBMISSION.md) preserve the delivery. Remaining explicit gaps are:
 
-- Valid public HTTPS response and database readiness. External authenticated smoke verified demo cookies with Secure/HttpOnly attributes, task CRUD, cross-workspace `404`, and logout. Public `/metrics` and `/api/metrics` returned `404`; metrics stay inside the cluster.
-- AWS reported account plan `FREE`, status `ACTIVE`, and positive remaining credit to the deployment guard. No account upgrade or paid EKS environment was used. Credit and time limits still bound availability.
-- A checksum-verified PostgreSQL backup restored into a separate disposable database with 11 tables and revision `81c61159f5c4`. This was the pre-dependency baseline. The restore-test database was removed; the production database was not replaced. Scheduled off-host backups are not configured.
-- A bounded 120-second CPU exercise observed API HPA scale **2 → 3 → 4** replicas and enforce the four-replica maximum. The load process exited successfully; the HPA then returned naturally **4 → 2**, with the event reason “All metrics below target” and observed CPU **3% / 75% target**.
-- Optional monitoring on a temporary 4 GiB host used `kube-prometheus-stack` **92.7.0** and Grafana **13.2.4**. Prometheus returned an application target `up=1`, a real request counter of **212**, and observed p95 request duration **0.0095 s**. The eight-panel **Vigil / operations** dashboard loaded. These are point-in-time measurements, not a performance guarantee.
-- Isolated broken-image and wrong-Service-selector exercises were diagnosed and recovered; their temporary namespace was removed.
+- **EKS was not provisioned or demonstrated.** The [real EKS console capture](../demo/evidence/aws-eks-not-provisioned.jpg) records its absence. The source-only EKS profile and live EC2/K3s environment do not satisfy a rubric that requires a running EKS cluster.
+- **A full Terraform destroy was not executed**, because the requested public product remains hosted. Reviewed cleanup instructions are provided; destructive completion is not fabricated.
+- GitOps and full monitoring were bounded demonstrations, then removed to preserve the Free account's credits and the 2 GiB host's memory.
 
-The first temporary monitoring cleanup was verified: the host returned to **t3.small (2 GiB)** with CPU credits set to `standard`, retained its public IP, and returned HTTPS readiness `200` with database `ok`. The monitoring release and namespace, temporary anonymous Grafana viewer, and SSM tunnel were removed; the local tunnel process exited. The AWS Free-plan guard passed again. Continuous Prometheus/Grafana hosting is not claimed.
-
-The following feature upgrade exposed memory pressure under the previous surge policy and intermittent mixed-version frontend assets. The deployed recovery revision changes the frontend Deployment to `Recreate` and the API to zero-surge rolling updates, trading a bounded frontend interruption for consistent assets and lower peak memory on the single host. Its route error boundary offers recovery for interrupted chunk loads and render failures. Final rollout, public workflows, return to t3.small, and renewed stability checks all passed as recorded above.
-
-### Captured live Grafana dashboard
-
-![Live Grafana operations dashboard showing two healthy API targets, actual request and latency series, and replica recovery from four to two](assets/grafana-live.png)
-
-This capture shows real Prometheus series from the temporary AWS monitoring exercise, including two healthy API targets and recovery from four replicas to two. The capture followed temporary tunnel interruptions and a Grafana restart: interactive use exceeded the original 256 MiB memory limit. The source now allows **512 MiB**, but that revised limit was only rendered/validated after capture and was **not rerun live**.
-
-Two displayed axes also predate source corrections: the HTTP 5xx ratio panel incorrectly scales its axis to 10,000% instead of 100%, and the checks-per-minute panel displays an operations-per-second suffix. The captured error/check series are zero. Source now bounds the ratio to 0–1 and uses a numeric checks-per-minute unit; these display fixes were not deployed for a new screenshot, and no measurements have been reinterpreted as if they were.
-
-The [infrastructure validation record](../infra/validation.txt) separately reports successful Terraform initialization without a backend, validation and formatting for both profiles; Helm lint/render; standard Kubernetes schema checks; monitoring chart rendering; and deployment-script syntax checks. Custom resource schema validation was explicitly skipped.
-
-EKS VPC/node-group apply and destroy, a VPC/EKS screenshot, and a recorded commit-to-deployment walkthrough remain unverified. The public K3s deployment does not substitute for the rubric's explicit EKS requirement. See the [requirements ledger](REQUIREMENTS.md), [deployment guide](DEPLOYMENT.md), and [operations guide](OPERATIONS.md).
+See the [requirements ledger](REQUIREMENTS.md), [deployment guide](DEPLOYMENT.md), [operations guide](OPERATIONS.md) and [submission walkthrough](../demo/VIDEO.md) for the matching source, workflows and evidence.

@@ -1,0 +1,238 @@
+[
+  {
+    "id": "s01",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-01.png",
+    "narration": [
+      "This is Vigil, an open source reliability workspace built by Aman Kumar.",
+      "This walkthrough starts with the project and its architecture, then follows real delivery evidence from source code to the running system.",
+      "Sample product data, recorded infrastructure evidence, and undeployed capabilities are clearly distinguished throughout."
+    ]
+  },
+  {
+    "id": "s02",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-02.png",
+    "narration": [
+      "Vigil connects service health, incident response, and recovery work in one workspace.",
+      "Registered users can run real public H T T P S checks, record incident updates, and assign follow-up tasks.",
+      "The isolated demo uses labeled sample measurements, so exploring the product never implies a real outage."
+    ]
+  },
+  {
+    "id": "s03",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-03.png",
+    "narration": [
+      "The dependency map adds context to an incident.",
+      "Select an upstream service to see direct and indirect dependents, without counting a service twice.",
+      "Connections are private, persist in the database, and reject cycles. Potential impact follows declared relationships; it does not claim automatic root cause detection."
+    ]
+  },
+  {
+    "id": "s04",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-04.png",
+    "narration": [
+      "The browser reaches the application through T L S and Traefik ingress.",
+      "Two frontend replicas serve the React interface; two Fast A P I replicas handle A P I requests. PostgreSQL stores users, sessions, service checks, incidents, tasks, and dependencies.",
+      "A separate optional worker handles scheduled probes. Database migrations run as a distinct release step."
+    ]
+  },
+  {
+    "id": "s05",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-05.png",
+    "narration": [
+      "The interface uses React and TypeScript, while the backend uses Python, SQLAlchemy, and Alembic.",
+      "Docker makes the stack reproducible. GitHub Actions validates changes and publishes images. Terraform describes infrastructure, Helm packages Kubernetes resources, and Prometheus with Grafana provides operational visibility."
+    ]
+  },
+  {
+    "id": "s06",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-06.png",
+    "narration": [
+      "Verification covers more than successful page loads.",
+      "There are ninety-four backend tests, twenty-four frontend tests, and ten spending-guard tests.",
+      "Integration checks also exercise PostgreSQL migrations, ownership isolation, real container startup, and persisted sessions and data after a backend restart."
+    ]
+  },
+  {
+    "id": "s07",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-07.png",
+    "narration": [
+      "A push to main runs the quality and container pipeline.",
+      "Tests and frontend compilation precede container integration checks and strict Trivy scans. Passing images are published with immutable Git commit tags.",
+      "The observed scan had zero high or critical findings. That is a dated scan result, not a guarantee of vulnerability-free software."
+    ]
+  },
+  {
+    "id": "s08",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-08.png",
+    "narration": [
+      "The deployed application uses K three s on an E C two host in Mumbai.",
+      "A fail-closed guard requires an active Free account plan and a positive finite credit balance before provisioning.",
+      "E K S remains an infrastructure implementation and planning exercise. It was not provisioned, and this video does not present K three s as E K S."
+    ]
+  },
+  {
+    "id": "s09",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-09.png",
+    "narration": [
+      "The deployment uses resource limits, health checks, private services, and an ingress route.",
+      "Frontend replacement avoids mixing incompatible hashed assets across old and new pods. The A P I avoids a surge on this small host.",
+      "Autoscaling and recovery were exercised separately, but a single host remains a single point of failure."
+    ]
+  },
+  {
+    "id": "s10",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-10.png",
+    "narration": [
+      "The GitOps exercise uses an isolated preview environment rather than transferring production ownership during a demonstration.",
+      "Argo C D reads the checked-in chart and desired revision from Git, compares it with the cluster, and reports synchronization and health.",
+      "The live evidence section shows the observed result and the exact boundary of this exercise."
+    ]
+  },
+  {
+    "id": "s11",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-11.png",
+    "narration": [
+      "Prometheus scrapes the real application metrics endpoint. Grafana turns those samples into request, latency, and error panels.",
+      "The monitoring stack is enabled for a bounded evidence session on temporary capacity.",
+      "These operational metrics are distinct from the fictional service-check history displayed inside the product demo."
+    ]
+  },
+  {
+    "id": "s12",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "media": "slides/slide-12.png",
+    "narration": [
+      "The main lesson is to make every claim traceable to evidence.",
+      "The project includes a usable product and a reproducible delivery path, while documenting the E K S gap, finite credits, and single-host availability limit.",
+      "The next section follows the required walkthrough order using actual captured screens and command output."
+    ]
+  },
+  {
+    "id": "code",
+    "chapter": "02 / Codebase  /  Actual public repository capture",
+    "media": "video/raw/codebase.webm",
+    "narration": [
+      "The public repository separates application code, deployment packaging, monitoring, infrastructure, and operational documentation.",
+      "Inside backend app, the Fast A P I entry point wires health checks, metrics, sessions, and the owner-isolated routes.",
+      "The frontend contains the workspace, dependency analysis, and the original interactive particle sculpture.",
+      "The workflow file makes the delivery contract reviewable: tests, real container integration, security scanning, and image publication are all versioned alongside the application."
+    ]
+  },
+  {
+    "id": "push",
+    "chapter": "03 / CI/CD  /  Actual captured push output",
+    "media": "evidence/ci-push.png",
+    "narration": [
+      "This is the captured output of a real push used for the submission recording.",
+      "The resulting commit identifies the source revision. The linked GitHub Actions run is the evidence for what happened next.",
+      "The following pipeline capture condenses waiting time, while preserving the actual job states and final outcome."
+    ]
+  },
+  {
+    "id": "ci",
+    "chapter": "03 / CI/CD  /  Actual run; waiting time condensed",
+    "media": "video/raw/ci-condensed.mp4",
+    "narration": [
+      "GitHub Actions starts the quality gates for the pushed revision.",
+      "The backend suite runs against isolated test data. PostgreSQL migration checks and the frontend build run before the container publishing stage.",
+      "The complete-stack smoke test starts the exact application images, checks proxy behavior and authentication, then restarts the backend to verify persistence.",
+      "Trivy scans both images and fails on high or critical findings. Only the passing images are published to the container registry under the commit S H A."
+    ]
+  },
+  {
+    "id": "terraform",
+    "chapter": "04 / Terraform  /  Captured plan; EKS not applied",
+    "media": "evidence/terraform-plan.png",
+    "narration": [
+      "Terraform source is provided for both the deployed E C two path and the optional E K S path.",
+      "This evidence shows the real plan output, rather than a reconstructed successful apply.",
+      "The Free-plan guard is a deployment boundary: missing, expired, paid, or empty-credit account states are rejected.",
+      "No E K S cluster was provisioned. The required E K S console and destruction evidence is therefore a documented submission gap, not something this video can honestly claim."
+    ]
+  },
+  {
+    "id": "aws",
+    "chapter": "04 / AWS  /  Actual deployed environment and stated limits",
+    "media": "video/raw/aws-console.mp4",
+    "narration": [
+      "The deployed environment is an E C two instance running K three s, with its network configuration managed by the infrastructure workflow.",
+      "This is the actual captured infrastructure evidence. Account identifiers and secrets are excluded from the public recording.",
+      "Temporary demonstration capacity is removed after the evidence session. The steady application returns to the smaller host, and the documentation explains how to destroy resources when they are no longer needed."
+    ]
+  },
+  {
+    "id": "argo",
+    "chapter": "05 / ArgoCD  /  Actual automatic promotion; waiting condensed",
+    "media": "video/raw/argo-condensed.mp4",
+    "narration": [
+      "Here is the isolated Argo C D application used for the GitOps exercise.",
+      "The real Git push changed the desired image tags to the passing build. Argo C D automatically reconciled the preview, without a manual Helm deployment.",
+      "The final captured state is Synced and Healthy at revision thirty-three f eight e one f. This proves the isolated promotion, not a transfer of production ownership.",
+      "The preview and its temporary access are cleaned up after capture to keep the exercise bounded."
+    ]
+  },
+  {
+    "id": "kubernetes",
+    "chapter": "06 / Kubernetes  /  Actual captured cluster output",
+    "media": "evidence/kubernetes.png",
+    "narration": [
+      "The Kubernetes evidence shows the actual pods, services, ingress, and Helm release.",
+      "The frontend runs two replicas, while the A P I replicas scale with demand. Services remain private, while ingress exposes the intended web and A P I paths.",
+      "Readiness is tied to database availability, and release jobs manage schema changes separately.",
+      "Healthy replicas improve process-level recovery, but they do not remove the single-host failure domain of this budget-conscious deployment."
+    ]
+  },
+  {
+    "id": "prometheus",
+    "chapter": "07 / Prometheus  /  Actual application targets",
+    "media": "video/raw/prometheus.webm",
+    "narration": [
+      "Prometheus is scraping the application during this bounded monitoring session.",
+      "The Targets page shows the observed health of the real application endpoints. An up target proves successful scraping at that time; it is not a historical availability guarantee.",
+      "The backend exposes counters and a latency histogram with low-cardinality labels, avoiding raw user paths or account identifiers in metric dimensions."
+    ]
+  },
+  {
+    "id": "grafana",
+    "chapter": "08 / Grafana  /  Actual populated dashboard",
+    "media": "video/raw/grafana.webm",
+    "narration": [
+      "Grafana displays samples from those Prometheus targets.",
+      "The populated panels show request activity and latency for the running application. A deliberate verification request can be traced from the service into the counters and dashboard.",
+      "The dashboard is operational evidence, while the in-product sample service history remains fictional and visibly labeled.",
+      "Monitoring access is private for this exercise, and temporary infrastructure is removed after the recording."
+    ]
+  },
+  {
+    "id": "product",
+    "chapter": "09 / Product walkthrough  /  Isolated sample workspace",
+    "media": "video/raw/workspace.webm",
+    "narration": [
+      "Finally, this is the application the delivery system supports.",
+      "The demo opens an isolated workspace with sample service health, a dependency map, incidents, and recovery tasks. The visible banner explains that these seeded measurements are illustrative.",
+      "A registered workspace can perform real checks. Private ownership is enforced by the backend, and exports let users retain their data.",
+      "The repository includes the source, setup instructions, evidence links, this presentation, and the reusable video pipeline."
+    ]
+  },
+  {
+    "id": "closing",
+    "chapter": "10 / Closing  /  Source and verification are public",
+    "media": "evidence/product-live.png",
+    "narration": [
+      "Vigil brings service monitoring and incident response into one coherent workflow, backed by a delivery path that can be inspected and reproduced.",
+      "The strongest evidence is not a polished screen alone. It is the connection between the code, the tested revision, the running system, and clearly stated limitations.",
+      "Thank you for reviewing the project."
+    ]
+  }
+]

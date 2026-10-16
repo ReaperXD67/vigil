@@ -68,7 +68,7 @@ kubectl -n monitoring port-forward service/monitoring-grafana 3001:80
 
 Access Grafana at `http://127.0.0.1:3001` from that workstation, or tunnel the loopback port through SSM. Retrieve `grafana-admin` from the cluster privately; do not paste credentials into issues or logs. Prometheus rules flag no API scrape target and sustained 5xx ratios. Notification delivery is not configured. Monitoring has short, ephemeral history to control memory/storage consumption.
 
-For a credential-free screen recording, the opt-in `VIGIL_TEMPORARY_REVIEW=1 bash scripts/deploy-monitoring.sh` installs private anonymous **Viewer** access only. Its matching `deploy-monitoring-cleanup.sh` requires the review ownership labels, removes empty owned CRDs, and refuses to adopt an existing monitoring installation. Keep all forwarding on loopback/SSM; no public admin or Grafana ingress is permitted.
+For a credential-free screen recording, the opt-in `VIGIL_TEMPORARY_REVIEW=1 bash scripts/deploy-monitoring.sh` installs private anonymous **Viewer** access only. Its matching `deploy-monitoring-cleanup.sh` requires the review ownership labels, removes empty owned CRDs, and refuses to adopt an unowned existing monitoring installation. Keep all forwarding on loopback/SSM; no public admin or Grafana ingress is permitted.
 
 For a bounded monitoring demonstration, first verify the Free plan and temporarily use an eligible host with sufficient memory. A resize plan must show an in-place change, with no replacement of the instance or disk; keep a database backup. After collecting evidence, remove the temporary stack before returning to the smaller host:
 

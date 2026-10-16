@@ -1,0 +1,299 @@
+1
+00:00:00,000 --> 00:00:04,279
+This is Vigil, an open source reliability workspace built by Aman Kumar.
+
+2
+00:00:04,279 --> 00:00:10,582
+This walkthrough starts with the project and its architecture, then follows real delivery evidence from source code to the running system.
+
+3
+00:00:10,582 --> 00:00:16,840
+Sample product data, recorded infrastructure evidence, and undeployed capabilities are clearly distinguished throughout.
+
+4
+00:00:17,640 --> 00:00:22,230
+Vigil connects service health, incident response, and recovery work in one workspace.
+
+5
+00:00:22,230 --> 00:00:28,928
+Registered users can run real public HTTPS checks, record incident updates, and assign follow-up tasks.
+
+6
+00:00:28,928 --> 00:00:34,448
+The isolated demo uses labeled sample measurements, so exploring the product never implies a real outage.
+
+7
+00:00:35,248 --> 00:00:38,079
+The dependency map adds context to an incident.
+
+8
+00:00:38,079 --> 00:00:43,203
+Select an upstream service to see direct and indirect dependents, without counting a service twice.
+
+9
+00:00:43,203 --> 00:00:52,742
+Connections are private, persist in the database, and reject cycles. Potential impact follows declared relationships; it does not claim automatic root cause detection.
+
+10
+00:00:53,542 --> 00:00:57,272
+The browser reaches the application through TLS and Traefik ingress.
+
+11
+00:00:57,272 --> 00:01:08,578
+Two frontend replicas serve the React interface; two FastAPI replicas handle API requests. PostgreSQL stores users, sessions, service checks, incidents, tasks, and dependencies.
+
+12
+00:01:08,578 --> 00:01:14,400
+A separate optional worker handles scheduled probes. Database migrations run as a distinct release step.
+
+13
+00:01:15,200 --> 00:01:21,119
+The interface uses React and TypeScript, while the backend uses Python, SQLAlchemy, and Alembic.
+
+14
+00:01:21,119 --> 00:01:33,734
+Docker makes the stack reproducible. GitHub Actions validates changes and publishes images. Terraform describes infrastructure, Helm packages Kubernetes resources, and Prometheus with Grafana provides operational visibility.
+
+15
+00:01:34,534 --> 00:01:37,573
+Verification covers more than successful page loads.
+
+16
+00:01:37,573 --> 00:01:43,055
+There are ninety-four backend tests, twenty-four frontend tests, and ten spending-guard tests.
+
+17
+00:01:43,055 --> 00:01:52,393
+Integration checks also exercise PostgreSQL migrations, ownership isolation, real container startup, and persisted sessions and data after a backend restart.
+
+18
+00:01:53,193 --> 00:01:56,192
+A push to main runs the quality and container pipeline.
+
+19
+00:01:56,192 --> 00:02:04,364
+Tests and frontend compilation precede container integration checks and strict Trivy scans. Passing images are published with immutable Git commit tags.
+
+20
+00:02:04,364 --> 00:02:11,729
+The observed scan had zero high or critical findings. That is a dated scan result, not a guarantee of vulnerability-free software.
+
+21
+00:02:12,529 --> 00:02:16,413
+The deployed application uses K3s on an EC2 host in Mumbai.
+
+22
+00:02:16,413 --> 00:02:21,851
+A fail-closed guard requires an active Free account plan and a positive finite credit balance before provisioning.
+
+23
+00:02:21,851 --> 00:02:30,217
+EKS remains an infrastructure implementation and planning exercise. It was not provisioned, and this video does not present K3s as EKS.
+
+24
+00:02:31,017 --> 00:02:35,691
+The deployment uses resource limits, health checks, private services, and an ingress route.
+
+25
+00:02:35,691 --> 00:02:43,099
+Frontend replacement avoids mixing incompatible hashed assets across old and new pods. The API avoids a surge on this small host.
+
+26
+00:02:43,099 --> 00:02:48,549
+Autoscaling and recovery were exercised separately, but a single host remains a single point of failure.
+
+27
+00:02:49,349 --> 00:02:55,395
+The GitOps exercise uses an isolated preview environment rather than transferring production ownership during a demonstration.
+
+28
+00:02:55,395 --> 00:03:02,319
+ArgoCD reads the checked-in chart and desired revision from Git, compares it with the cluster, and reports synchronization and health.
+
+29
+00:03:02,319 --> 00:03:06,795
+The live evidence section shows the observed result and the exact boundary of this exercise.
+
+30
+00:03:07,595 --> 00:03:14,891
+Prometheus scrapes the real application metrics endpoint. Grafana turns those samples into request, latency, and error panels.
+
+31
+00:03:14,891 --> 00:03:19,138
+The monitoring stack is enabled for a bounded evidence session on temporary capacity.
+
+32
+00:03:19,138 --> 00:03:24,274
+These operational metrics are distinct from the fictional service-check history displayed inside the product demo.
+
+33
+00:03:25,075 --> 00:03:28,226
+The main lesson is to make every claim traceable to evidence.
+
+34
+00:03:28,226 --> 00:03:36,826
+The project includes a usable product and a reproducible delivery path, while documenting the EKS gap, finite credits, and single-host availability limit.
+
+35
+00:03:36,826 --> 00:03:41,970
+The next section follows the required walkthrough order using actual captured screens and command output.
+
+36
+00:03:42,770 --> 00:03:50,600
+The public repository separates application code, deployment packaging, monitoring, infrastructure, and operational documentation.
+
+37
+00:03:50,600 --> 00:03:57,289
+Inside backend app, the FastAPI entry point wires health checks, metrics, sessions, and the owner-isolated routes.
+
+38
+00:03:57,289 --> 00:04:02,705
+The frontend contains the workspace, dependency analysis, and the original interactive particle sculpture.
+
+39
+00:04:02,705 --> 00:04:12,371
+The workflow file makes the delivery contract reviewable: tests, real container integration, security scanning, and image publication are all versioned alongside the application.
+
+40
+00:04:13,210 --> 00:04:16,819
+This is the captured output of a real push used for the submission recording.
+
+41
+00:04:16,819 --> 00:04:23,011
+The resulting commit identifies the source revision. The linked GitHub Actions run is the evidence for what happened next.
+
+42
+00:04:23,011 --> 00:04:28,755
+The following pipeline capture condenses waiting time, while preserving the actual job states and final outcome.
+
+43
+00:04:29,570 --> 00:04:32,736
+GitHub Actions starts the quality gates for the pushed revision.
+
+44
+00:04:32,736 --> 00:04:40,552
+The backend suite runs against isolated test data. PostgreSQL migration checks and the frontend build run before the container publishing stage.
+
+45
+00:04:40,552 --> 00:04:48,720
+The complete-stack smoke test starts the exact application images, checks proxy behavior and authentication, then restarts the backend to verify persistence.
+
+46
+00:04:48,720 --> 00:04:56,569
+Trivy scans both images and fails on high or critical findings. Only the passing images are published to the container registry under the commit SHA.
+
+47
+00:04:57,370 --> 00:05:02,295
+Terraform source is provided for both the deployed EC2 path and the optional EKS path.
+
+48
+00:05:02,295 --> 00:05:06,850
+This evidence shows the real plan output, rather than a reconstructed successful apply.
+
+49
+00:05:06,850 --> 00:05:12,985
+The Free-plan guard is a deployment boundary: missing, expired, paid, or empty-credit account states are rejected.
+
+50
+00:05:12,985 --> 00:05:22,194
+No EKS cluster was provisioned. The required EKS console and destruction evidence is therefore a documented submission gap, not something this video can honestly claim.
+
+51
+00:05:23,010 --> 00:05:29,870
+The deployed environment is an EC2 instance running K3s, with its network configuration managed by the infrastructure workflow.
+
+52
+00:05:29,870 --> 00:05:36,466
+This is the actual captured infrastructure evidence. Account identifiers and secrets are excluded from the public recording.
+
+53
+00:05:36,466 --> 00:05:47,119
+Temporary demonstration capacity is removed after the evidence session. The steady application returns to the smaller host, and the documentation explains how to destroy resources when they are no longer needed.
+
+54
+00:05:47,930 --> 00:05:52,100
+Here is the isolated ArgoCD application used for the GitOps exercise.
+
+55
+00:05:52,100 --> 00:06:00,366
+The real Git push changed the desired image tags to the passing build. ArgoCD automatically reconciled the preview, without a manual Helm deployment.
+
+56
+00:06:00,366 --> 00:06:08,820
+The final captured state is Synced and Healthy at revision thirty-three f eight e one f. This proves the isolated promotion, not a transfer of production ownership.
+
+57
+00:06:08,820 --> 00:06:13,482
+The preview and its temporary access are cleaned up after capture to keep the exercise bounded.
+
+58
+00:06:14,290 --> 00:06:18,963
+The Kubernetes evidence shows the actual pods, services, ingress, and Helm release.
+
+59
+00:06:18,963 --> 00:06:28,022
+The frontend runs two replicas, while the API replicas scale with demand. Services remain private, while ingress exposes the intended web and API paths.
+
+60
+00:06:28,022 --> 00:06:33,086
+Readiness is tied to database availability, and release jobs manage schema changes separately.
+
+61
+00:06:33,086 --> 00:06:39,758
+Healthy replicas improve process-level recovery, but they do not remove the single-host failure domain of this budget-conscious deployment.
+
+62
+00:06:40,570 --> 00:06:44,439
+Prometheus is scraping the application during this bounded monitoring session.
+
+63
+00:06:44,439 --> 00:06:53,442
+The Targets page shows the observed health of the real application endpoints. An up target proves successful scraping at that time; it is not a historical availability guarantee.
+
+64
+00:06:53,442 --> 00:07:01,316
+The backend exposes counters and a latency histogram with low-cardinality labels, avoiding raw user paths or account identifiers in metric dimensions.
+
+65
+00:07:02,130 --> 00:07:05,262
+Grafana displays samples from those Prometheus targets.
+
+66
+00:07:05,262 --> 00:07:14,058
+The populated panels show request activity and latency for the running application. A deliberate verification request can be traced from the service into the counters and dashboard.
+
+67
+00:07:14,058 --> 00:07:20,002
+The dashboard is operational evidence, while the in-product sample service history remains fictional and visibly labeled.
+
+68
+00:07:20,002 --> 00:07:25,608
+Monitoring access is private for this exercise, and temporary infrastructure is removed after the recording.
+
+69
+00:07:26,410 --> 00:07:30,139
+Finally, this is the application the delivery system supports.
+
+70
+00:07:30,139 --> 00:07:40,122
+The demo opens an isolated workspace with sample service health, a dependency map, incidents, and recovery tasks. The visible banner explains that these seeded measurements are illustrative.
+
+71
+00:07:40,122 --> 00:07:47,624
+A registered workspace can perform real checks. Private ownership is enforced by the backend, and exports let users retain their data.
+
+72
+00:07:47,624 --> 00:07:54,122
+The repository includes the source, setup instructions, evidence links, this presentation, and the reusable video pipeline.
+
+73
+00:07:54,930 --> 00:08:02,163
+Vigil brings service monitoring and incident response into one coherent workflow, backed by a delivery path that can be inspected and reproduced.
+
+74
+00:08:02,163 --> 00:08:11,181
+The strongest evidence is not a polished screen alone. It is the connection between the code, the tested revision, the running system, and clearly stated limitations.
+
+75
+00:08:11,181 --> 00:08:13,261
+Thank you for reviewing the project.

@@ -1,0 +1,25 @@
+Build, scan and publish immutable images	Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:31:45.7235204Z ##[start-action display=Remove Trivy Envs file;id=__aquasecurity_trivy-action_2.__run_5]
+Build, scan and publish immutable images	Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:31:45.7253323Z ##[group]Run rm -f trivy_envs.txt
+Build, scan and publish immutable images	Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:31:45.7253640Z ^[[36;1mrm -f trivy_envs.txt^[[0m
+Build, scan and publish immutable images	Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:31:45.7415598Z ##[end-action id=__aquasecurity_trivy-action_2.__run_5;outcome=success;conclusion=success;duration_ms=17]
+Build, scan and publish immutable images	Show scan findings	﻿2026-10-16T13:31:45.7446552Z ##[group]Run for report in trivy-backend.txt trivy-frontend.txt; do
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7447108Z ^[[36;1mfor report in trivy-backend.txt trivy-frontend.txt; do^[[0m
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7603844Z │ ghcr.io/reaperxd67/vigil-backend:dbe40442fc324ea1393e121a65887ee697131619        │   alpine   │        0        │
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7604636Z │ (alpine 3.24.2)                                                                  │            │                 │
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7619324Z │ usr/local/lib/python3.12/site-packages/fastapi-0.143.1.dist-info/METADATA        │ python-pkg │        0        │
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7624305Z │ usr/local/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA             │ python-pkg │        0        │
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7665538Z │ ghcr.io/reaperxd67/vigil-frontend:dbe40442fc324ea1393e121a65887ee697131619 │ alpine │        0        │
+Build, scan and publish immutable images	Show scan findings	2026-10-16T13:31:45.7666212Z │ (alpine 3.24.2)                                                            │        │                 │
+Build, scan and publish immutable images	Preserve security scan evidence	2026-10-16T13:31:45.7715445Z   path: trivy-*.txt
+Build, scan and publish immutable images	Publish both scanned images to GHCR	2026-10-16T13:31:47.5624711Z a1e340c9bbe2: Preparing
+Build, scan and publish immutable images	Publish both scanned images to GHCR	2026-10-16T13:31:49.5271324Z 0465a93492d4: Pushed
+Build, scan and publish immutable images	Publish both scanned images to GHCR	2026-10-16T13:31:54.9743275Z dbe40442fc324ea1393e121a65887ee697131619: digest: sha256:6f2e8883002a0a875085312993ff70a01839820dd70aa1a68c01cf637af15cc8 size: 2613
+Build, scan and publish immutable images	Publish both scanned images to GHCR	2026-10-16T13:31:59.6988708Z dbe40442fc324ea1393e121a65887ee697131619: digest: sha256:0ee2062e60bff38f02d3c5af5c7a5ab5407ac1162cf8611aab9e751b9bfbc9eb size: 2824
+Build, scan and publish immutable images	Post Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:32:04.9627591Z Cache saved with key: cache-trivy-2026-10-16
+Build, scan and publish immutable images	Post Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:32:04.9710048Z ##[start-action display=Install Trivy;id=__4cc7b8cb-eb12-42d5-ae4e-6264914785d3.__aquasecurity_setup-trivy]
+Build, scan and publish immutable images	Post Fail on frontend HIGH or CRITICAL vulnerabilities	2026-10-16T13:32:04.9811773Z ##[end-action id=__4cc7b8cb-eb12-42d5-ae4e-6264914785d3.__aquasecurity_setup-trivy;outcome=success;conclusion=success;duration_ms=9]
+Build, scan and publish immutable images	Post Fail on backend HIGH or CRITICAL vulnerabilities	2026-10-16T13:32:07.3260548Z Failed to save: Unable to reserve cache with key cache-trivy-2026-10-16, another job may be creating this cache.
+Build, scan and publish immutable images	Post Fail on backend HIGH or CRITICAL vulnerabilities	2026-10-16T13:32:07.3425881Z ##[start-action display=Install Trivy;id=__a809e25e-c8b8-4b9c-99a3-9c2b1efb0da4.__aquasecurity_setup-trivy]
+Build, scan and publish immutable images	Post Fail on backend HIGH or CRITICAL vulnerabilities	2026-10-16T13:32:07.3513093Z ##[end-action id=__a809e25e-c8b8-4b9c-99a3-9c2b1efb0da4.__aquasecurity_setup-trivy;outcome=success;conclusion=success;duration_ms=8]
+Build, scan and publish immutable images	Complete job	﻿2026-10-16T13:32:07.5696243Z Cleaning up orphan processes
+Build, scan and publish immutable images	Complete job	2026-10-16T13:32:07.6025142Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11d5960a326750d5838078e36cf38b85af677262, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

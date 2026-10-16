@@ -1,0 +1,61 @@
+Actual Terraform saved-plan output; account/resource identifiers redacted.
+EKS is not included or deployed. Temporary instance resize must be reversed after recording.
+
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # aws_instance.host will be updated in-place
+  ~ resource "aws_instance" "host" {
+        id                                   = "[RESOURCE_ID_REDACTED]"
+      ~ instance_type                        = "t3.small" -> "c7i-flex.large"
+      ~ public_dns                           = "ec2-13-127-163-58.ap-south-1.compute.amazonaws.com" -> (known after apply)
+      ~ public_ip                            = "13.127.163.58" -> (known after apply)
+        tags                                 = {
+            "Name" = "vigil-public-demo"
+        }
+        # (37 unchanged attributes hidden)
+
+        # (8 unchanged blocks hidden)
+    }
+
+  # aws_route_table_association.public_secondary will be created
+  + resource "aws_route_table_association" "public_secondary" {
+      + id             = (known after apply)
+      + route_table_id = "[RESOURCE_ID_REDACTED]"
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_subnet.public_secondary will be created
+  + resource "aws_subnet" "public_secondary" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "ap-south-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.67.2.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Name" = "vigil-public-secondary"
+        }
+      + tags_all                                       = {
+          + "ManagedBy" = "terraform"
+          + "Name"      = "vigil-public-secondary"
+          + "Profile"   = "budget-demo"
+          + "Project"   = "vigil"
+        }
+      + vpc_id                                         = "[RESOURCE_ID_REDACTED]"
+    }
+
+Plan: 2 to add, 1 to change, 0 to destroy.

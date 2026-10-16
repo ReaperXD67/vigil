@@ -6,6 +6,9 @@ export KUBECONFIG=${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}
 cd "$(dirname "$0")/.."
 [[ ${VIGIL_TEMPORARY_REVIEW:-} == 1 ]] || { echo 'Set VIGIL_TEMPORARY_REVIEW=1 after reviewing the cleanup plan.' >&2; exit 2; }
 awk '/MemTotal/ {exit !($2 >= 3500000)}' /proc/meminfo || { echo 'The temporary review requires at least 4 GiB host capacity.' >&2; exit 2; }
+for namespace in argocd vigil-preview; do
+  kubectl get namespace "$namespace" --ignore-not-found -o json | python3 -c 'import json,sys; raw=sys.stdin.read(); assert not raw.strip() or json.loads(raw).get("metadata",{}).get("labels",{}).get("app.kubernetes.io/part-of")=="vigil-gitops-review", "Refusing to adopt an existing unowned review namespace"'
+done
 kubectl apply -f gitops/preview-access.yaml
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace argocd app.kubernetes.io/part-of=vigil-gitops-review --overwrite

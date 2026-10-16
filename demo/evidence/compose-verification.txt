@@ -1,0 +1,26 @@
+Local Compose verification — 16 October 2026
+docker compose up --build -d --wait: exit 0; frontend/backend/postgres Healthy
+Backend mapped to localhost:8001 to preserve the existing development API on 8000.
+
+NAME               IMAGE                COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+vigil-backend-1    vigil-backend        "sh -c 'alembic upgr…"   backend    50 seconds ago   Up 44 seconds (healthy)   127.0.0.1:8001->8000/tcp
+vigil-frontend-1   vigil-frontend       "/docker-entrypoint.…"   frontend   50 seconds ago   Up 37 seconds (healthy)   127.0.0.1:3000->8080/tcp
+vigil-postgres-1   postgres:16-alpine   "docker-entrypoint.s…"   postgres   51 seconds ago   Up 49 seconds (healthy)   5432/tcp
+uid=10001(vigil) gid=10001(vigil) groups=10001(vigil)
+uid=101(nginx) gid=101(nginx) groups=101(nginx)
+               List of relations
+ Schema |         Name         | Type  | Owner
+--------+----------------------+-------+-------
+ public | activity             | table | vigil
+ public | alembic_version      | table | vigil
+ public | capacity_locks       | table | vigil
+ public | checks               | table | vigil
+ public | incident_updates     | table | vigil
+ public | incidents            | table | vigil
+ public | rate_windows         | table | vigil
+ public | service_dependencies | table | vigil
+ public | services             | table | vigil
+ public | sessions             | table | vigil
+ public | tasks                | table | vigil
+ public | users                | table | vigil
+(12 rows)

@@ -1,0 +1,35 @@
+2026-10-16T13:57:55Z
+NAME                                 READY   STATUS    RESTARTS        AGE
+pod/vigil-backend-74c78df4c9-62hh4   1/1     Running   1 (6m21s ago)   16m
+pod/vigil-backend-74c78df4c9-cwg8h   1/1     Running   1 (6m21s ago)   16m
+pod/vigil-frontend-89d84755c-vxqvr   1/1     Running   2 (5m31s ago)   16m
+pod/vigil-frontend-89d84755c-zc28h   1/1     Running   2 (5m31s ago)   16m
+pod/vigil-postgres-0                 1/1     Running   6 (6m22s ago)   25h
+pod/vigil-worker-657f989f96-49p6m    1/1     Running   1 (6m21s ago)   16m
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/vigil-backend    ClusterIP   10.53.97.254    <none>        8000/TCP   25h
+service/vigil-frontend   ClusterIP   10.53.198.184   <none>        8080/TCP   25h
+service/vigil-postgres   ClusterIP   None            <none>        5432/TCP   25h
+service/vigil-worker     ClusterIP   10.53.30.113    <none>        8000/TCP   25h
+
+NAME                              CLASS     HOSTS                          ADDRESS      PORTS     AGE
+ingress.networking.k8s.io/vigil   traefik   vigil.13-127-163-58.sslip.io   10.67.1.65   80, 443   25h
+NAME      	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART           	APP VERSION
+vigil     	vigil    	10      	2026-10-16 13:50:51.486461482 +0000 UTC	deployed	vigil-0.1.0     	0.1.0
+vigil-data	vigil    	4       	2026-10-16 13:41:16.888672672 +0000 UTC	deployed	vigil-data-0.1.0	17
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/vigil-backend    2/2     2            2           25h
+deployment.apps/vigil-frontend   2/2     2            2           25h
+deployment.apps/vigil-worker     1/1     1            1           25h
+
+NAME                                                REFERENCE                  TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/vigil-backend   Deployment/vigil-backend   cpu: 4%/75%   2         4         2          25h
+               total        used        free      shared  buff/cache   available
+Mem:            1909        1227          92          18         590         517
+Swap:              0           0           0
+ok
+{"status":"ready","database":"ok"}
+  Warning  FailedComputeMetricsReplicas  5m35s              horizontal-pod-autoscaler  invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)
+  Normal   SuccessfulRescale             5m20s              horizontal-pod-autoscaler  New size: 3; reason: cpu resource utilization (percentage of request) above target
+  Normal   SuccessfulRescale             19s                horizontal-pod-autoscaler  New size: 2; reason: All metrics below target

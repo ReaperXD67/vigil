@@ -1,0 +1,23 @@
+Actual read-only Kubernetes/Argo status after Git-driven promotion.
+2026-10-16T13:38:38Z
+[
+  {
+    "name": "vigil-backend",
+    "ready": 1,
+    "image": "ghcr.io/reaperxd67/vigil-backend:dbe40442fc324ea1393e121a65887ee697131619"
+  },
+  {
+    "name": "vigil-frontend",
+    "ready": 1,
+    "image": "ghcr.io/reaperxd67/vigil-frontend:dbe40442fc324ea1393e121a65887ee697131619"
+  }
+]
+{
+  "sync": "Synced",
+  "revision": "33f8e1f4e01e68a52922dcf4fd6f3e77edfe47af",
+  "health": "Healthy",
+  "phase": "Succeeded",
+  "startedAt": "2026-10-16T13:37:27Z",
+  "finishedAt": "2026-10-16T13:37:42Z"
+}
+c5f6d1a2b390

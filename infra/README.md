@@ -10,7 +10,7 @@ Each profile includes a reviewable configuration template: [EC2 variables](ec2/t
 
 The deployment helper checks the actual AWS account plan before applying changes: only `FREE`/`ACTIVE` with positive credits passes. Paid accounts fail even with unused credits. Delete-only cleanup remains available. No workflow upgrades the account; the public demo must remain on its time-limited Free plan.
 
-Both Terraform roots pass local validation; Helm and Kubernetes schema checks are recorded in [validation.txt](validation.txt). These results do not claim that EKS or the public AWS environment is running.
+Both Terraform roots pass local validation; Helm and Kubernetes schema checks are recorded in [validation.txt](validation.txt). The EC2 root was applied and hosts the public application. Its two public subnets were verified in the actual AWS console on 16 October 2026; only the first contains compute. [Delivery evidence](../docs/VERIFICATION.md) distinguishes this live EC2/K3s environment from the source-only EKS profile, which remains unprovisioned under the account's Free-plan policy.
 
 Offline validation, which creates no cloud resources:
 

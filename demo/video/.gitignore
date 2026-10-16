@@ -1,0 +1,5 @@
+audio/
+raw/
+output/
+*.tmp
+__pycache__/

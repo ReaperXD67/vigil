@@ -1,0 +1,163 @@
+[
+  {
+    "id": "s01",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 0.0,
+    "duration": 17.64,
+    "media": "slides/slide-01.png"
+  },
+  {
+    "id": "s02",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 17.64,
+    "duration": 17.608,
+    "media": "slides/slide-02.png"
+  },
+  {
+    "id": "s03",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 35.248,
+    "duration": 18.294,
+    "media": "slides/slide-03.png"
+  },
+  {
+    "id": "s04",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 53.542,
+    "duration": 21.658,
+    "media": "slides/slide-04.png"
+  },
+  {
+    "id": "s05",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 75.2,
+    "duration": 19.334,
+    "media": "slides/slide-05.png"
+  },
+  {
+    "id": "s06",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 94.534,
+    "duration": 18.659,
+    "media": "slides/slide-06.png"
+  },
+  {
+    "id": "s07",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 113.193,
+    "duration": 19.336,
+    "media": "slides/slide-07.png"
+  },
+  {
+    "id": "s08",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 132.529,
+    "duration": 18.488,
+    "media": "slides/slide-08.png"
+  },
+  {
+    "id": "s09",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 151.017,
+    "duration": 18.332,
+    "media": "slides/slide-09.png"
+  },
+  {
+    "id": "s10",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 169.349,
+    "duration": 18.246,
+    "media": "slides/slide-10.png"
+  },
+  {
+    "id": "s11",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 187.595,
+    "duration": 17.48,
+    "media": "slides/slide-11.png"
+  },
+  {
+    "id": "s12",
+    "chapter": "01 / Project and architecture  /  Presentation",
+    "start": 205.075,
+    "duration": 17.694,
+    "media": "slides/slide-12.png"
+  },
+  {
+    "id": "code",
+    "chapter": "02 / Codebase  /  Actual public repository capture",
+    "start": 222.77,
+    "duration": 30.44,
+    "media": "video/raw/codebase.webm"
+  },
+  {
+    "id": "push",
+    "chapter": "03 / CI/CD  /  Actual captured push output",
+    "start": 253.21,
+    "duration": 16.36,
+    "media": "evidence/ci-push.png"
+  },
+  {
+    "id": "ci",
+    "chapter": "03 / CI/CD  /  Actual run; waiting time condensed",
+    "start": 269.57,
+    "duration": 27.8,
+    "media": "video/raw/ci-condensed.mp4"
+  },
+  {
+    "id": "terraform",
+    "chapter": "04 / Terraform  /  Captured plan; EKS not applied",
+    "start": 297.37,
+    "duration": 25.64,
+    "media": "evidence/terraform-plan.png"
+  },
+  {
+    "id": "aws",
+    "chapter": "04 / AWS  /  Actual deployed environment and stated limits",
+    "start": 323.01,
+    "duration": 24.92,
+    "media": "video/raw/aws-console.mp4"
+  },
+  {
+    "id": "argo",
+    "chapter": "05 / ArgoCD  /  Actual automatic promotion; waiting condensed",
+    "start": 347.93,
+    "duration": 26.36,
+    "media": "video/raw/argo-condensed.mp4"
+  },
+  {
+    "id": "kubernetes",
+    "chapter": "06 / Kubernetes  /  Actual captured cluster output",
+    "start": 374.29,
+    "duration": 26.28,
+    "media": "evidence/kubernetes.png"
+  },
+  {
+    "id": "prometheus",
+    "chapter": "07 / Prometheus  /  Actual application targets",
+    "start": 400.57,
+    "duration": 21.56,
+    "media": "video/raw/prometheus.webm"
+  },
+  {
+    "id": "grafana",
+    "chapter": "08 / Grafana  /  Actual populated dashboard",
+    "start": 422.13,
+    "duration": 24.28,
+    "media": "video/raw/grafana.webm"
+  },
+  {
+    "id": "product",
+    "chapter": "09 / Product walkthrough  /  Isolated sample workspace",
+    "start": 446.41,
+    "duration": 28.52,
+    "media": "video/raw/workspace.webm"
+  },
+  {
+    "id": "closing",
+    "chapter": "10 / Closing  /  Source and verification are public",
+    "start": 474.93,
+    "duration": 19.132,
+    "media": "evidence/product-live.png"
+  }
+]

@@ -1,0 +1,9 @@
+2026-10-16T13:30:05.5809393Z ........................................................................ [ 76%]
+2026-10-16T13:30:08.0140561Z ......................                                                   [100%]
+2026-10-16T13:30:08.2984701Z Ran 10 tests in 0.001s
+2026-10-16T13:30:08.2985117Z OK
+
+Actual JUnit artifact: api-test-results/test-results.xml
+Source: Actions run 38908236938 / API tests job 116997179250
+JUnit attributes: tests=94, failures=0, errors=0, skipped=0, time=18.995
+Passed = tests - failures - errors - skipped = 94
