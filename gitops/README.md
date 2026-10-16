@@ -2,7 +2,7 @@
 
 Argo CD reconciles the existing Vigil Helm chart into the disposable `vigil-preview` namespace. Production `vigil` remains owned by its original Helm release. This separation avoids two controllers trying to manage the same objects.
 
-The review is opt-in and temporary. The installer pins Argo CD chart `10.10.5` (application `v3.5.5`), disables admin/SSO/terminal access, and exposes only a private ClusterIP. Anonymous UI access is read-only and limited to the preview project. The controller has no production access, no cluster-wide role, and no permission to read preview Secrets. Its explicit destination and resource allowlist prevent it from creating cluster infrastructure or changing RBAC. The bootstrap operator creates a separate database and random runtime Secrets before Argo's migration hook runs.
+The review is opt-in and temporary. The installer pins Argo CD chart `10.10.5` (application `v3.5.5`), disables admin/SSO/terminal access, and exposes only a private ClusterIP. Anonymous UI access is read-only and limited to the preview project. The controller has no production access, no cluster-wide role, and no permission to read preview Secrets. Its explicit destination and resource allowlist prevent it from creating cluster infrastructure or changing RBAC. The preview namespace enforces Kubernetes Restricted Pod Security to reject privileged workloads and host mounts. The bootstrap operator creates a separate database and random runtime Secrets before Argo's migration hook runs.
 
 ## Install and inspect
 

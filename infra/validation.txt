@@ -42,3 +42,13 @@ AWS Free-plan deployment boundary: 10 standard-library regression tests PASS.
   PAID accounts with credits, expired plans, empty/null/non-finite balances and
   malformed plan responses fail closed. Explicit/delete-only cleanup remains
   possible. No upgrade or account-enrollment operation is implemented.
+
+2026-10-16 submission preparation (local validation):
+  EC2 root: second public subnet + route association HCL fmt/validate PASS.
+  Argo CD chart10.10.5 / applicationv3.5.5 render PASS.
+  Argo/preview/access/Application schema:56resources,51valid,0invalid,0errors,
+  5customresources skipped by kubeconform; no custom-schema runtime claim.
+  Rendered Argo has no ClusterRole/ClusterRoleBinding or public Service.
+  Preview renders2Deployments with no public Ingress/HPA; production untouched.
+  New GitOps and temporary monitoring scripts: Bashsyntax PASS.
+  Live reconciliation/evidence is recorded separately only after execution.

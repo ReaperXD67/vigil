@@ -1,10 +1,10 @@
 # Promote only an image SHA whose complete CI pipeline passed.
 # The second Git commit in the recorded workflow updates these two tags.
 backend:
-  tag: 49b1aa3fc58f5327b3adc79d6760244c95435052
+  tag: dbe40442fc324ea1393e121a65887ee697131619
   replicas: 1
 frontend:
-  tag: 49b1aa3fc58f5327b3adc79d6760244c95435052
+  tag: dbe40442fc324ea1393e121a65887ee697131619
   replicas: 1
 worker:
   enabled: false
